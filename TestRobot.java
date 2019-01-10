@@ -2,6 +2,22 @@ package bc19;
 
 public class TestRobot extends BCAbstractRobot {
 	public int turn;
+	public ArrayList<Tuple> robotList;
+	
+	public class Tuple<Integer, Integer> {
+		private int u;
+		private int i;
+		public Tuple(int a, int b) {
+			u = a;
+			i = b;
+		}
+		public int getUnit() {
+			return u;
+		}
+		public int getID() {
+			return i;
+		}
+	}
 
     public Action turn() {
     	turn++;
@@ -64,20 +80,66 @@ public class TestRobot extends BCAbstractRobot {
     	
 	}
     
+    /** Returns true if the specified square of the grid is passable.
+     *  Returns false otherwise.
+     */
+    public boolean isPassable(int x, int y) {
+    	boolean[][] m = getPassableMap();
+    	if (m[x][y] == true) {
+    		return true;
+    	}
+    	return false;
+    }
+    
+    /** 
+     *  
+     */
+    public ArrayList<Tuple> getRobotList() {
+    	return robotList;
+    }
+    
+    /** 
+     *  
+     */
+    public ArrayList<Tuple> addRobotList() {
+    	
+    }
+    
+    
     /** finds the closest mine to robot
      *  x, y is current position of robot
      */
-    public  findMine(int x, int y) {
+    public int[] findMine(int x, int y) {
     	
     	 protected final boolean isMinHeap;
     	 protected VP[] d;
     	 protected int size;
     	 protected HashMap<E, Integer> map;
+    	 boolean[][] fm = getFuelMap();
+    	 boolean[][] km = getKarboniteMap();
+    	 
+    	 /** A VP object houses a Value and a Priority. */
+    	 class VP {
+    	        V value;           // The value
+    	        double priority;   // The priority
+
+    	        /** An instance with value v and priority p*/
+    	        VP(V v, double p) {
+    	            value= v;
+    	            priority= p;
+    	        }
+
+    	        /** Return a representation of this VP object. */
+    	        @Override public String toString() {
+    	            return "(" + value + ", " + priority + ")";
+    	        }
+    	 }
+    	 
     	 
     	 
     }
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
-    //helper method to check if it's a passable spot
+    
     public MoveAction findMove()
     {
     	boolean[][] map = getPassableMap();
