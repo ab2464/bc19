@@ -1,15 +1,31 @@
 package bc19;
 
-public class TestRobot extends BCAbstractRobot {
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class MyRobot extends BCAbstractRobot {
 	public int turn;
+	public int team;
 	public ArrayList<Tuple> robotList;
+	public ArrayList<Integer> fuelMines;
+	public ArrayList<Integer> karbMines;
+
 	
-	public class Tuple<Integer, Integer> {
+	
+	
+	
+	/** stores information on a robot
+	 *  u is the unit type (1 to 5)
+	 *  i is the unit id
+	 *
+	 */
+	private class Tuple {
 		private int u;
 		private int i;
-		public Tuple(int a, int b) {
-			u = a;
-			i = b;
+		public Tuple(int unit, int id) {
+			u = unit;
+			i = id;
 		}
 		public int getUnit() {
 			return u;
@@ -18,13 +34,18 @@ public class TestRobot extends BCAbstractRobot {
 			return i;
 		}
 	}
+	
+
+	
+	
 
     public Action turn() {
     	turn++;
 
     	//Moves for castle
     	if (me.unit == SPECS.CASTLE) {
-    		if (turn == 1) {
+    		log("Turn " + turn);
+    		if (turn < 6) {
     			log("Building a pilgrim.");
     			return buildUnit(SPECS.PILGRIM,1,0);
     		}
@@ -41,9 +62,15 @@ public class TestRobot extends BCAbstractRobot {
                  
                 //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
     		}
-    		int dx = 1;
-    		int dy = 1;
-    		MoveAction m = move(dx,dy)
+    		//if its a pilgrim call findMine here
+        	
+    		
+        	
+        	
+    		int dx = (int)(Math.random()*3)-1;
+    		int dy = (int)(Math.random()*3)-1;
+    		MoveAction m = move(dx,dy);
+    		//m = pilgrimMove(true);
     		return m;
     	}
     	
@@ -85,67 +112,158 @@ public class TestRobot extends BCAbstractRobot {
      */
     public boolean isPassable(int x, int y) {
     	boolean[][] m = getPassableMap();
+    	if(x<0 || y<0 || x>m.length || y>m.length)
+    	{
+    		return false;
+    	}
     	if (m[x][y] == true) {
     		return true;
     	}
     	return false;
     }
+   
+    /*
     
-    /** 
-     *  
-     */
     public ArrayList<Tuple> getRobotList() {
     	return robotList;
     }
     
-    /** 
-     *  
-     */
-    public ArrayList<Tuple> addRobotList() {
-    	
+    
+    public void addRobotList(int unit, int id) {
+    	robotList.add(new Tuple(unit, id));
     }
     
+    */
+    
+    
+    /** checks if point is a fuel mine
+     *  
+     */
+    public boolean isFuelMine(int x, int y)
+    {
+    	boolean[][] fuel = getFuelMap(); 
+    	if(isPassable(x,y) && fuel[x][y])
+    	{
+    		return true;
+    	}
+    	return false;
+    }
+    
+    
+    /** checks if point is a karbonite mine
+     * 
+     */
+    public boolean isKarboniteMine(int x, int y)
+    {
+    	boolean[][] karb = getKarboniteMap(); 
+    	if(isPassable(x,y) && karb[x][y])
+    	{
+    		return true;
+    	}
+    	return false;
+    }
     
     /** finds the closest mine to robot
      *  x, y is current position of robot
+     *  isFuel is true if finding a fuel mine, false if finding a karbonite mine
+     *  return: array with x and y of nearest mine
      */
-    public int[] findMine(int x, int y) {
-    	
-    	 protected final boolean isMinHeap;
-    	 protected VP[] d;
-    	 protected int size;
-    	 protected HashMap<E, Integer> map;
+    public int[] findMine(int x, int y, boolean isFuel) {
     	 boolean[][] fm = getFuelMap();
     	 boolean[][] km = getKarboniteMap();
+    	
+    	 //closest mine and distance in units of r^2
+    	 int[] mine = new int[2]; 
+    	 int r2 = Integer.MAX_VALUE;
     	 
-    	 /** A VP object houses a Value and a Priority. */
-    	 class VP {
-    	        V value;           // The value
-    	        double priority;   // The priority
-
-    	        /** An instance with value v and priority p*/
-    	        VP(V v, double p) {
-    	            value= v;
-    	            priority= p;
-    	        }
-
-    	        /** Return a representation of this VP object. */
-    	        @Override public String toString() {
-    	            return "(" + value + ", " + priority + ")";
-    	        }
+    	 
+    	 //use a breadth-first search to find nearest mine within a 5x5 grid 
+    	 int r = 1;
+    	 while(r<5) {
+    		 
+      	 for(int i = -1*r; i<=r;i++)
+    	 {
+    		 for(int j = -1*r; j<=r; j++)
+    		 {
+    			
+    			//if tile is a mine and is closest
+    			if(isFuelMine(x+i,y+j)&&(i*i+j*j)<r2)
+    			{
+    				r2 = i*i+j*j;
+    				mine = new int[] {x+1,y+j};
+    				//return mine;
+    			}
+    		 }
     	 }
+      	 if(r2<Integer.MAX_VALUE)
+      	 {
+      		 return mine;
+      	 }
+    	}
+    	 
+    	 
+    	 return null;
     	 
     	 
     	 
     }
+    
+    
+    
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
     public MoveAction findMove()
     {
-    	boolean[][] map = getPassableMap();
+    	//boolean[][] map = getPassableMap();
+    	
+    	
     	return null;
     }
+
+    //only for pilgrims - might integrate into findMove() later
+    //has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
+    public MoveAction pilgrimMove(boolean isFuel)
+    {
+    	int dx = 0;
+    	int dy = 0;
+    	//boolean[][] map = getPassableMap();
+    	int[] mine = findMine(me.x,me.y,isFuel);
+    			
+    	int signX = (int)(Math.signum(mine[0]-me.x));
+    	int signY = (int)(Math.signum(mine[1]-me.y));
+    	if(signX != 0)
+    	{
+    		if(signY==0)
+    		{
+    			dx = signX*2;
+    			dy = 0;
+    		}
+    		else
+    		{
+    			dx = signX*1;
+    			dy = signY*1;
+    		}
+    	}
+    	else
+    	{
+    		
+			dx = 0;
+			dy = signY*2;
+    		
+    	}
+    	
+    	return move(dx,dy);
+    }
+    
+    public MineAction pMine()
+    {
+    	if((isFuelMine(me.x,me.y)&&me.fuel<=90) || (isKarboniteMine(me.x,me.y)&&me.karbonite<=18))
+    	{
+    		return mine();
+    	}
+    	return null;
+    }
     
     
 }
