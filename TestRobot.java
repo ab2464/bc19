@@ -14,7 +14,7 @@ public class MyRobot extends BCAbstractRobot {
 	public ArrayList<Integer> fuelMines;
 	public ArrayList<Integer> karbMines;
 	public ArrayList<Integer> castleList;
-	
+	public int[] des = new int[] {-1, -1};
 	
 	
 	
@@ -92,7 +92,7 @@ public class MyRobot extends BCAbstractRobot {
     			//return pMine();
     		}
    
-    		MoveAction m = findMove(4, [-1,-1]);  // { }?	
+    		MoveAction m = findMove(4, new int[] {-1,-1}); 	
     		
     		return m;
     	}
@@ -115,7 +115,7 @@ public class MyRobot extends BCAbstractRobot {
     			log("Attack!");
     			return a;
     		}
-    		return findMove(9);
+    		return findMove(9, des);
     	}
     	
     	if (me.unit == SPECS.PROPHET) {
@@ -261,7 +261,7 @@ public class MyRobot extends BCAbstractRobot {
     
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
-    public MoveAction findMove(int range, int[] des) //range = r^2, des = destination calculated by another function
+    public MoveAction findMove(int range, int[] dest) //range = r^2, des = destination calculated by another function
     {
     	// if there is no unit to go to, it can move randomly 
     	//boolean[][] map = getPassableMap();
@@ -269,22 +269,31 @@ public class MyRobot extends BCAbstractRobot {
     	int dx = 0;
     	int dy = 0;
     	
-    	if (des[0] == -1 && des[1] == -1) {
+    	// check if passable???
+    	if (dest[0] == -1 || dest[1] == -1) {
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     	}
     	
-    	dx = des[0] - me.x;
-    	dy = des[1] - me.y;
+    	dx = dest[0] - me.x;
+    	dy = dest[1] - me.y;
   
     	boolean change_dx = true;
     	while (!(dx*dx + dy*dy <= range) && !isPassable(me.x + dx, me.y + dy)) {
-    		if (change_dx) {
+    		if (change_dx && x >= 0) {
     			dx--;
     			change_dx = false;
     		}
-    		else {
+    		else if (!change_dx && y >=0) {
     			dy--;
+    			change_dx = true;
+    		}
+    		else if (change_dx && x < 0) {
+    			dx++;
+    			change_dx = false;
+    		}
+    		else if (!change_dx && y < 0) {
+    			dy++;
     			change_dx = true;
     		}
     	}
