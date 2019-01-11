@@ -1,7 +1,6 @@
 package bc19;
 
 import bc19.Robot;
-//import bc19.Robot;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -10,7 +9,8 @@ import java.util.HashMap;
 public class MyRobot extends BCAbstractRobot {
 	public int turn;
 	public int color;
-	public ArrayList<Tuple> robotList;
+	public ArrayList<Integer> robotID;
+	public HashMap<Integer,Integer> robotUnit;
 	public ArrayList<Integer> fuelMines;
 	public ArrayList<Integer> karbMines;
 	public ArrayList<Integer> castleList;
@@ -52,7 +52,7 @@ public class MyRobot extends BCAbstractRobot {
     		if(turn==1)
     		{
     			castleList.add(me.id);
-    			color = me.team;
+    			
     		}
     		
     		/*
@@ -66,7 +66,7 @@ public class MyRobot extends BCAbstractRobot {
     			log("Building a pilgrim.");	
     			return buildUnit(SPECS.PILGRIM,1,0);
     		}
-    		if (turn <7 || me.karbonite>20) {
+    		if (karbonite>20) {
     			log("Building a crusader.");
     			return buildUnit(SPECS.CRUSADER,0,1);
     		}
@@ -87,9 +87,9 @@ public class MyRobot extends BCAbstractRobot {
     		boolean isFuel = true; 
     		
     		
-    		if(pMine()!=null)
+    		if(isFuelMine(me.x,me.y)||isKarboniteMine(me.x,me.y))
     		{
-    			return pMine();
+    			//return pMine();
     		}
    
     		MoveAction m = pilgrimMove(isFuel);    	
@@ -109,7 +109,13 @@ public class MyRobot extends BCAbstractRobot {
     			log("I am crusader" + me.id);
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
-    		return findMove();
+    		AttackAction a = findAttack(16);
+    		if(a!=null)
+    		{
+    			log("Attack!");
+    			return a;
+    		}
+    		return findMove(9);
     	}
     	
     	if (me.unit == SPECS.PROPHET) {
@@ -186,7 +192,8 @@ public class MyRobot extends BCAbstractRobot {
     	return false;
     }
     
-    /** finds the closest mine to robot
+    /** HAS OVERTIME ISSUES RN 
+     * finds the closest mine to robot
      *  x, y is current position of robot
      *  isFuel is true if finding a fuel mine, false if finding a karbonite mine
      *  return: array with x and y of nearest mine
@@ -235,7 +242,7 @@ public class MyRobot extends BCAbstractRobot {
     
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
-    public MoveAction findMove()
+    public MoveAction findMove(int range)
     {
     
     	
@@ -244,6 +251,7 @@ public class MyRobot extends BCAbstractRobot {
     	int dx = (int)(Math.random()*3)-1;
 		int dy = (int)(Math.random()*3)-1;
     	
+    	//while(!isPassable(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
     	while(!isPassable(me.x+dx,me.y+dy))
     	{
     		dx = (int)(Math.random()*3)-1;
@@ -261,7 +269,8 @@ public class MyRobot extends BCAbstractRobot {
     {
     	//destination
     	int[] dest;
-    	
+    	int dx = 0;
+    	int dy = 0;
     	if(isFull())
     	{
     		Robot[] robots = getVisibleRobots();
@@ -284,14 +293,21 @@ public class MyRobot extends BCAbstractRobot {
     			}
     		
     		}
+    		/*
+    		if(Math.abs(dest[0]-me.x)<2 && Math.abs(dest[1]-me.y)<2)
+    		{
+    			dx = dest[0]-me.x;
+    			dy = dest[1]-me.y;
+    			return give(int dx, int dy, me.karbonite, me.fuel);
+    		}
+    		*/
     	}
     	else
     	{
-    		dest = findMine(me.x,me.y,isFuel);
+    		//dest = findMine(me.x,me.y,isFuel);
     	}
     	
-    	int dx = 0;
-    	int dy = 0;
+    
     	//boolean[][] map = getPassableMap();
     	
     	
@@ -345,7 +361,7 @@ public class MyRobot extends BCAbstractRobot {
     	{
     		for(int j = -1;j<=1;j++)
     		{
-    			if(isPassable(me.x+i,me.y+j)&&!(i==0&&j==0))
+    			if(isPassable(me.x+i,me.y+j)&&!(i==0&&j==0)&& robotMap[me.x+i][me.y+j]==0)
     			{	
     				log("Build unit "+unit);
     				return buildUnit(unit,i,j);
@@ -363,9 +379,22 @@ public class MyRobot extends BCAbstractRobot {
     	return me.fuel==100 || me.karbonite == 20;
     }
     
-    public AttackAction findAttack()
+ 
+    
+    public AttackAction findAttack(int range)
     {
     	
+    	Robot[] robots = getVisibleRobots();
+    	for(int i =0; i<robots.length;i++)
+    	{
+    		Robot r = robots[i];
+    		if(r.team != me.team && (r.x-me.x)*(r.x-me.x)+(r.y-me.y)*(r.y-me.y)<=range)
+    		{
+    			log("Attack! "+r.team);
+    			
+    			return attack(r.x-me.x,r.y-me.y);
+    		}
+    	}
     	return null; 
     }
     
