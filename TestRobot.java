@@ -1,16 +1,19 @@
 package bc19;
 
-
+import bc19.Robot;
+//import bc19.Robot;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+
+
 public class MyRobot extends BCAbstractRobot {
 	public int turn;
-	public int team;
+	public int color;
 	public ArrayList<Tuple> robotList;
 	public ArrayList<Integer> fuelMines;
 	public ArrayList<Integer> karbMines;
-
+	public ArrayList<Integer> castleList;
 	
 	
 	
@@ -45,6 +48,12 @@ public class MyRobot extends BCAbstractRobot {
     	//Moves for castle
     	if (me.unit == SPECS.CASTLE) {
     		log("Turn " + turn);
+    		
+    		if(turn==1)
+    		{
+    			castleList.add(me.id);
+    			color = me.team;
+    		}
     		
     		/*
     		if(turn<5 && build(2)!=null)
@@ -82,8 +91,9 @@ public class MyRobot extends BCAbstractRobot {
     		{
     			return pMine();
     		}
-    		//MoveAction m = pilgrimMove(isFuel);    	
-    		MoveAction m = findMove();
+   
+    		MoveAction m = pilgrimMove(isFuel);    	
+    		
     		return m;
     	}
     	
@@ -249,18 +259,51 @@ public class MyRobot extends BCAbstractRobot {
     
     public MoveAction pilgrimMove(boolean isFuel)
     {
+    	//destination
+    	int[] dest;
+    	
+    	if(isFull())
+    	{
+    		Robot[] robots = getVisibleRobots();
+    		int r2 = Integer.MAX_VALUE;
+    		
+    		for(int i =0;i<robots.length;i++)
+    		{
+    			Robot r = robots[i];
+    			
+    			/**/
+    			if(r.unit==0 &&castleList.contains(r.id))
+    			{
+    				if((r.x-me.x)*(r.x-me.x)+(r.y-me.y)*(r.y-me.y)<r2)
+    				{
+    					r2 = (r.x-me.x)*(r.x-me.x)+(r.y-me.y)*(r.y-me.y);
+    					dest = new int[] {r.x,r.y};
+    					
+    				}
+    				
+    			}
+    		
+    		}
+    	}
+    	else
+    	{
+    		dest = findMine(me.x,me.y,isFuel);
+    	}
+    	
     	int dx = 0;
     	int dy = 0;
     	//boolean[][] map = getPassableMap();
-    	int[] mine = findMine(me.x,me.y,isFuel);
-    	if(mine == null)
+    	
+    	
+    	
+    	if(dest == null)
     	{
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     		return move(dx,dy);
     	}
-    	int signX = (int)(Math.signum(mine[0]-me.x));
-    	int signY = (int)(Math.signum(mine[1]-me.y));
+    	int signX = (int)(Math.signum(dest[0]-me.x));
+    	int signY = (int)(Math.signum(dest[1]-me.y));
     	if(signX != 0)
     	{
     		if(signY==0)
@@ -310,6 +353,14 @@ public class MyRobot extends BCAbstractRobot {
     		}
     	}
     	return null;
+    }
+    
+    /**returns true if unit is at max carrying capacity for either fuel/karbonite
+     * 
+     */
+    public boolean isFull()
+    {
+    	return me.fuel==100 || me.karbonite == 20;
     }
     
     public AttackAction findAttack()
