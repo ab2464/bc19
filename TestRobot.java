@@ -51,7 +51,7 @@ public class MyRobot extends BCAbstractRobot {
     		
     		if(turn==1)
     		{
-    			castleList.add(me.id);
+    			//castleList.add(me.id);
     			
     		}
     		
@@ -97,7 +97,7 @@ public class MyRobot extends BCAbstractRobot {
     			//return pMine();
     		}
    
-    		MoveAction m = pilgrimMove(isFuel);    	
+    		MoveAction m = findMove(4);    	
     		
     		return m;
     	}
@@ -255,7 +255,7 @@ public class MyRobot extends BCAbstractRobot {
     	 */
       	 if(r2<Integer.MAX_VALUE)
       	 {
-      		 log("Mine at ("+mine[0]+","+mine[1]);
+      		 log("Mine at ("+mine[0]+","+mine[1]+")");
       		 return mine;
       	 }
     	
