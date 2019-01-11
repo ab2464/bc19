@@ -104,6 +104,10 @@ public class MyRobot extends BCAbstractRobot {
     		{
     			des = spawn;
     		}
+    		if(me.y==spawn[0] && me.x==spawn[1])
+    		{
+    			log("HOME");
+    		}
     		MoveAction m = findMove(4, des); 	
     		
     		return m;
@@ -211,7 +215,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     
     
-    /** HAS OVERTIME ISSUES RN 
+    /** 
      * finds the closest mine to robot
      *  x, y is current position of robot
      *  isFuel is true if finding a fuel mine, false if finding a karbonite mine
@@ -221,7 +225,7 @@ public class MyRobot extends BCAbstractRobot {
    	 boolean[][] fm = getFuelMap();
    	 boolean[][] km = getKarboniteMap();
    	 boolean[][] visited = new boolean[fm.length][fm.length];
-   	
+   	 
    	 //closest mine and distance in units of r^2
    	 int[] mine = new int[2]; 
    	 int r2 = Integer.MAX_VALUE;
@@ -269,39 +273,51 @@ public class MyRobot extends BCAbstractRobot {
     	int dy = 0;
     	
     	// check if passable???
-    	//if (dest[0] == -1 || dest[1] == -1)
+    	if (dest[0] == -1 || dest[1] == -1)
     	{
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     		return move(dx,dy);
     	}
-    	/*
     	dx = dest[1] - me.x;
     	dy = dest[0] - me.y;
-  
     	
-    	boolean change_dx = true;
-    	while ((!(dx*dx + dy*dy <= range) || !isPassable(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
-    		if (change_dx && dx > 0) {
-    			dx--;
-    			change_dx = false;
-    		}
-    		else if (!change_dx && dy > 0) {
+    	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
+    		if ( !(dx*dx + dy*dy <= range && isPassable(me.y + dy, me.x + dx))) {
     			dy--;
-    			change_dx = true;
+    			dx--;
     		}
-    		else if (change_dx && dx < 0) {
-    			dx++;
-    			change_dx = false;
-    		}
-    		else if (!change_dx && dy < 0) {
-    			dy++;
-    			change_dx = true;
-    		}
+    		else {
+    			break;
+    		}	
     	}
-    	
-		return move(dx,dy);
-		*/
+    	return move(dx,dy);
+    	/**/
+
+//  
+//    	
+//    	boolean change_dx = true;
+//    	while ((!(dx*dx + dy*dy <= range) || !isPassable(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
+//    		if (change_dx && dx > 0) {
+//    			dx--;
+//    			change_dx = false;
+//    		}
+//    		else if (!change_dx && dy > 0) {
+//    			dy--;
+//    			change_dx = true;
+//    		}
+//    		else if (change_dx && dx < 0) {
+//    			dx++;
+//    			change_dx = false;
+//    		}
+//    		else if (!change_dx && dy < 0) {
+//    			dy++;
+//    			change_dx = true;
+//    		}
+//    	}
+//    	
+//		
+//		
     	
 //		int dx = (int)(Math.random()*3)-1;
 //		int dy = (int)(Math.random()*3)-1;
