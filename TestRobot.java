@@ -65,13 +65,15 @@ public class MyRobot extends BCAbstractRobot {
     			return build(3);
     			*/
     		
-    		if (turn < 4 || (karbonite>=10 && karbonite<20 ) ) {
+    		if (turn < 3 || (karbonite>=10 && karbonite<20 ) ) {
     			log("Building a pilgrim.");	
-    			return buildUnit(SPECS.PILGRIM,1,0);
+    			return build(2);    			
+    			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
     		if (karbonite>20) {
     			log("Building a crusader.");
-    			return buildUnit(SPECS.CRUSADER,0,1);
+    			return build(3);
+    			//return buildUnit(SPECS.CRUSADER,0,1);
     		}
     	
     		
@@ -267,15 +269,17 @@ public class MyRobot extends BCAbstractRobot {
     	int dy = 0;
     	
     	// check if passable???
-    	if (dest[0] == -1 || dest[1] == -1) {
+    	//if (dest[0] == -1 || dest[1] == -1)
+    	{
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     		return move(dx,dy);
     	}
-    	
+    	/*
     	dx = dest[1] - me.x;
     	dy = dest[0] - me.y;
   
+    	
     	boolean change_dx = true;
     	while ((!(dx*dx + dy*dy <= range) || !isPassable(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
     		if (change_dx && dx > 0) {
@@ -297,6 +301,7 @@ public class MyRobot extends BCAbstractRobot {
     	}
     	
 		return move(dx,dy);
+		*/
     	
 //		int dx = (int)(Math.random()*3)-1;
 //		int dy = (int)(Math.random()*3)-1;
@@ -394,7 +399,7 @@ public class MyRobot extends BCAbstractRobot {
     
     public MineAction pMine()
     {
-    	if((isFuelMine(me.x,me.y)&&me.fuel<=90) || (isKarboniteMine(me.x,me.y)&&me.karbonite<=18))
+    	if((isFuelMine(me.y,me.x)&&me.fuel<=90) || (isKarboniteMine(me.y,me.x)&&me.karbonite<=18))
     	{
     		return mine();
     	}
@@ -409,7 +414,7 @@ public class MyRobot extends BCAbstractRobot {
     	{
     		for(int j = -1;j<=1;j++)
     		{
-    			if(isPassable(me.x+i,me.y+j)&&!(i==0&&j==0)&& robotMap[me.y+j][me.x+i]==0)
+    			if(isPassable(me.y+j,me.x+i)&&!(i==0&&j==0)&& robotMap[me.y+j][me.x+i]==0)
     			{	
     				log("Build unit "+unit);
     				return buildUnit(unit,i,j);
