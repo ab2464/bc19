@@ -66,11 +66,10 @@ public class MyRobot extends BCAbstractRobot {
         	
     		
         	
-        	
-    		int dx = (int)(Math.random()*3)-1;
-    		int dy = (int)(Math.random()*3)-1;
-    		MoveAction m = move(dx,dy);
-    		//m = pilgrimMove(true);
+    		boolean isFuel = true; 
+    		
+    		MoveAction m = pilgrimMove(isFuel);    	
+ 
     		return m;
     	}
     	
@@ -177,9 +176,9 @@ public class MyRobot extends BCAbstractRobot {
     	 int r2 = Integer.MAX_VALUE;
     	 
     	 
-    	 //use a breadth-first search to find nearest mine within a 5x5 grid 
+    	 //use a breadth-first search to find nearest mine within a 10x10 grid 
     	 int r = 1;
-    	 while(r<5) {
+    	 while(r<10) {
     		 
       	 for(int i = -1*r; i<=r;i++)
     	 {
@@ -229,7 +228,12 @@ public class MyRobot extends BCAbstractRobot {
     	int dy = 0;
     	//boolean[][] map = getPassableMap();
     	int[] mine = findMine(me.x,me.y,isFuel);
-    			
+    	if(mine == null)
+    	{
+    		dx = (int)(Math.random()*3)-1;
+    		dy = (int)(Math.random()*3)-1;
+    		return move(dx,dy);
+    	}
     	int signX = (int)(Math.signum(mine[0]-me.x));
     	int signY = (int)(Math.signum(mine[1]-me.y));
     	if(signX != 0)
@@ -264,6 +268,26 @@ public class MyRobot extends BCAbstractRobot {
     	}
     	return null;
     }
+    
+   
+    public BuildAction build(int unit)
+    {
+    	int[][] robotMap = getVisibleRobotMap();
+    	for(int i=-1;i<=1;i++)
+    	{
+    		for(int j = -1;j<=1;j++)
+    		{
+    			if(isPassable(me.x+i,me.y+j)&&)
+    		}
+    	}
+    }
+    
+    public AttackAction findAttack()
+    {
+    	
+    	return null; 
+    }
+    
     
     
 }
