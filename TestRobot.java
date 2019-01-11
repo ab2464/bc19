@@ -78,11 +78,6 @@ public class MyRobot extends BCAbstractRobot {
     		if (turn == 1) {
     			log("I am pilgrim" + me.id);
                  
-    			
-    			//test
-    			findMine(me.x,me.y,false);
-    			
-    			
                 //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
     		}
     		//if its a pilgrim call findMine here
@@ -97,7 +92,7 @@ public class MyRobot extends BCAbstractRobot {
     			//return pMine();
     		}
    
-    		MoveAction m = findMove(4);    	
+    		MoveAction m = findMove(4, [-1,-1]);  // { }?	
     		
     		return m;
     	}
@@ -169,7 +164,6 @@ public class MyRobot extends BCAbstractRobot {
     
     */
     
-    
     /** checks if point is a fuel mine
      *  
      */
@@ -197,6 +191,7 @@ public class MyRobot extends BCAbstractRobot {
     	return false;
     }
     
+    
     /** HAS OVERTIME ISSUES RN 
      * finds the closest mine to robot
      *  x, y is current position of robot
@@ -204,40 +199,40 @@ public class MyRobot extends BCAbstractRobot {
      *  return: array with x and y of nearest mine
      */
     public int[] findMine(int x, int y, boolean isFuel) {
-    	 boolean[][] fm = getFuelMap();
-    	 boolean[][] km = getKarboniteMap();
-    	 boolean[][] visited = new boolean[fm.length][fm.length];
-    	
-    	 //closest mine and distance in units of r^2
-    	 int[] mine = new int[2]; 
-    	 int r2 = Integer.MAX_VALUE;
-    	 int d = 0;
-    	 
-    	 //use a breadth-first search to find nearest mine within a 10x10 grid 
-    	 int r = 1;
-    	 for(int i = 0; i<km.length;i++){
-    		 if((i-x)*(i-x)>r2) {
-    			 continue;
-    		 }
-    		 for(int j = 0; j<km.length;j++) {
-    			 if((j-y)*(j-y)>r2) {
-    				 continue;
-    			 }
-    			 d =(i-x)*(i-x)+(j-y)*(j-y);
-    			 if(km[i][j]&&d<r2)
+   	 boolean[][] fm = getFuelMap();
+   	 boolean[][] km = getKarboniteMap();
+   	 boolean[][] visited = new boolean[fm.length][fm.length];
+   	
+   	 //closest mine and distance in units of r^2
+   	 int[] mine = new int[2]; 
+   	 int r2 = Integer.MAX_VALUE;
+   	 int d = 0;
+   	 
+   	 //use a breadth-first search to find nearest mine within a 10x10 grid 
+   	 int r = 1;
+   	 for(int i = 0; i<km.length;i++){
+   		 if((i-x)*(i-x)>r2) {
+   			 continue;
+   		 }
+   		 for(int j = 0; j<km.length;j++) {
+   			 if((j-y)*(j-y)>r2) {
+   				 continue;
+   			 }
+   			 d =(i-x)*(i-x)+(j-y)*(j-y);
+   			 if(km[i][j]&&d<r2)
 	    			{
 	    				r2 = d;
 	    				mine = new int[] {x+i,y+j};
 	    				//return mine;
 	    			}
-    		 }
-    	 }
-    	 /*
-    	 while(r<5) {} 
-      	 for(int i = -1*r; i<=r;i++)
-    	 {
-    		 for(int j = -1*r; j<=r; j++)
-    		 {
+   		 }
+   	 }
+   	 /*
+   	 while(r<5) {} 
+     	 for(int i = -1*r; i<=r;i++)
+   	 {
+   		 for(int j = -1*r; j<=r; j++)
+   		 {
 	    		if(!visited[x+i][y+j])
 	    		{
 	    			//if tile is a mine and is closest
@@ -249,49 +244,69 @@ public class MyRobot extends BCAbstractRobot {
 	    			}
 	    			visited[x+i][y+j] = true;
 	    		}
-    		 }
-    	 }
-    	 
-    	 */
-      	 if(r2<Integer.MAX_VALUE)
-      	 {
-      		 log("Mine at ("+mine[0]+","+mine[1]+")");
-      		 return mine;
-      	 }
-    	
-    	
-    	 
-    	 
-    	 return null;
-    	 
-    	 
-    	 
-    }
-    
+   		 }
+   	 }
+   	 
+   	 */
+     	 if(r2<Integer.MAX_VALUE)
+     	 {
+     		 log("Mine at ("+mine[0]+","+mine[1]);
+     		 return mine;
+     	 }
+   	 
+   	 return null;
+   	 
+   }
     
     
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
-    public MoveAction findMove(int range)
+    public MoveAction findMove(int range, int[] des) //range = r^2, des = destination calculated by another function
     {
-    
-    	
+    	// if there is no unit to go to, it can move randomly 
     	//boolean[][] map = getPassableMap();
     	
-    	int dx = (int)(Math.random()*3)-1;
-		int dy = (int)(Math.random()*3)-1;
+    	int dx = 0;
+    	int dy = 0;
     	
-    	//while(!isPassable(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
-    	while(!isPassable(me.x+dx,me.y+dy))
-    	{
+    	if (des[0] == -1 && des[1] == -1) {
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     	}
+    	
+    	dx = des[0] - me.x;
+    	dy = des[1] - me.y;
+  
+    	boolean change_dx = true;
+    	while (!(dx*dx + dy*dy <= range) && !isPassable(me.x + dx, me.y + dy)) {
+    		if (change_dx) {
+    			dx--;
+    			change_dx = false;
+    		}
+    		else {
+    			dy--;
+    			change_dx = true;
+    		}
+    	}
+    	
 		return move(dx,dy);
     	
-    	//return null;
+//		int dx = (int)(Math.random()*3)-1;
+//		int dy = (int)(Math.random()*3)-1;
+//    	
+//    	//while(!isPassable(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
+//    	while(!isPassable(me.x+dx,me.y+dy))
+//    	{
+//    		dx = (int)(Math.random()*3)-1;
+//    		dy = (int)(Math.random()*3)-1;
+//    	}
+//		return move(dx,dy);
+//    	
+//    	//return null;
     }
 
+    
+    
     //only for pilgrims - might integrate into findMove() later
     //has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
@@ -342,16 +357,14 @@ public class MyRobot extends BCAbstractRobot {
     	
     	
     	
-    	if(dest == null)
-    	{
+    	if(dest == null) {
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
     		return move(dx,dy);
     	}
     	int signX = (int)(Math.signum(dest[0]-me.x));
     	int signY = (int)(Math.signum(dest[1]-me.y));
-    	if(signX != 0)
-    	{
+    	if(signX != 0) {
     		if(signY==0)
     		{
     			dx = signX*2;
@@ -365,10 +378,8 @@ public class MyRobot extends BCAbstractRobot {
     	}
     	else
     	{
-    		
 			dx = 0;
 			dy = signY*2;
-    		
     	}
     	
     	return move(dx,dy);
