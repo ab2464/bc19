@@ -45,14 +45,23 @@ public class MyRobot extends BCAbstractRobot {
     	//Moves for castle
     	if (me.unit == SPECS.CASTLE) {
     		log("Turn " + turn);
-    		if (turn < 6) {
-    			log("Building a pilgrim.");
+    		
+    		/*
+    		if(turn<5 && build(2)!=null)
+    			return build(2);
+    		if(turn<15 || me.karbonite>20)
+    			return build(3);
+    			*/
+    		
+    		if (turn < 4) {
+    			log("Building a pilgrim.");	
     			return buildUnit(SPECS.PILGRIM,1,0);
     		}
-    		if (turn == 2) {
+    		if (turn <7 || me.karbonite>20) {
     			log("Building a crusader.");
     			return buildUnit(SPECS.CRUSADER,0,1);
     		}
+    	
     		
     	}
 
@@ -68,8 +77,13 @@ public class MyRobot extends BCAbstractRobot {
         	
     		boolean isFuel = true; 
     		
-    		MoveAction m = pilgrimMove(isFuel);    	
- 
+    		
+    		if(pMine()!=null)
+    		{
+    			return pMine();
+    		}
+    		//MoveAction m = pilgrimMove(isFuel);    	
+    		MoveAction m = findMove();
     		return m;
     	}
     	
@@ -85,7 +99,7 @@ public class MyRobot extends BCAbstractRobot {
     			log("I am crusader" + me.id);
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
-    		
+    		return findMove();
     	}
     	
     	if (me.unit == SPECS.PROPHET) {
@@ -178,7 +192,7 @@ public class MyRobot extends BCAbstractRobot {
     	 
     	 //use a breadth-first search to find nearest mine within a 10x10 grid 
     	 int r = 1;
-    	 while(r<10) {
+    	 while(r<5) {
     		 
       	 for(int i = -1*r; i<=r;i++)
     	 {
@@ -213,10 +227,21 @@ public class MyRobot extends BCAbstractRobot {
     
     public MoveAction findMove()
     {
+    
+    	
     	//boolean[][] map = getPassableMap();
     	
+    	int dx = (int)(Math.random()*3)-1;
+		int dy = (int)(Math.random()*3)-1;
     	
-    	return null;
+    	while(!isPassable(me.x+dx,me.y+dy))
+    	{
+    		dx = (int)(Math.random()*3)-1;
+    		dy = (int)(Math.random()*3)-1;
+    	}
+		return move(dx,dy);
+    	
+    	//return null;
     }
 
     //only for pilgrims - might integrate into findMove() later
@@ -277,9 +302,14 @@ public class MyRobot extends BCAbstractRobot {
     	{
     		for(int j = -1;j<=1;j++)
     		{
-    			if(isPassable(me.x+i,me.y+j)&&)
+    			if(isPassable(me.x+i,me.y+j)&&!(i==0&&j==0))
+    			{	
+    				log("Build unit "+unit);
+    				return buildUnit(unit,i,j);
+    				}
     		}
     	}
+    	return null;
     }
     
     public AttackAction findAttack()
