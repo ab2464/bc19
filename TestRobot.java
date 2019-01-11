@@ -15,7 +15,7 @@ public class MyRobot extends BCAbstractRobot {
 	public ArrayList<Integer> karbMines;
 	public ArrayList<Integer> castleList;
 	public int[] des = new int[] {-1, -1};
-	
+	public int[] spawn = new int[2];
 	
 	
 	/** stores information on a robot
@@ -44,7 +44,10 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
     	turn++;
-
+    	boolean[][] fm = getFuelMap();
+       	boolean[][] km = getKarboniteMap();
+    	
+    	
     	//Moves for castle
     	if (me.unit == SPECS.CASTLE) {
     		log("Turn " + turn);
@@ -62,7 +65,7 @@ public class MyRobot extends BCAbstractRobot {
     			return build(3);
     			*/
     		
-    		if (turn < 4) {
+    		if (turn < 4 || (karbonite>=10 && karbonite<20 ) ) {
     			log("Building a pilgrim.");	
     			return buildUnit(SPECS.PILGRIM,1,0);
     		}
@@ -77,7 +80,8 @@ public class MyRobot extends BCAbstractRobot {
     	if (me.unit == SPECS.PILGRIM) {
     		if (turn == 1) {
     			log("I am pilgrim" + me.id);
-                 
+                spawn[0] = me.x;
+                spawn[1] = me.y;
                 //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
     		}
     		//if its a pilgrim call findMine here
@@ -86,13 +90,19 @@ public class MyRobot extends BCAbstractRobot {
         	
     		boolean isFuel = true; 
     		
-    		
-    		if(isFuelMine(me.x,me.y)||isKarboniteMine(me.x,me.y))
-    		{
-    			//return pMine();
+    		if(me.karbonite<20 && des[0]<0 && des[1]<0) {
+    			//des = findMine(me.x,me.y,false);
     		}
-   
-    		MoveAction m = findMove(4, new int[] {-1,-1}); 	
+    		if(km[me.x][me.y]&&me.karbonite<20)
+    		{
+    			log("MINING");
+    			return mine();
+    		}
+    		if(me.karbonite ==20)
+    		{
+    			des = spawn;
+    		}
+    		MoveAction m = findMove(4, des); 	
     		
     		return m;
     	}
@@ -107,6 +117,8 @@ public class MyRobot extends BCAbstractRobot {
     	if (me.unit == SPECS.CRUSADER) {
     		if (turn == 1) {
     			log("I am crusader" + me.id);
+    			spawn[0] = me.x;
+                spawn[1] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
     		AttackAction a = findAttack(16);
@@ -121,6 +133,8 @@ public class MyRobot extends BCAbstractRobot {
     	if (me.unit == SPECS.PROPHET) {
     		if (turn == 1) {
     			log("Prophet.");
+    			spawn[0] = me.x;
+                spawn[1] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
     	}
@@ -128,6 +142,8 @@ public class MyRobot extends BCAbstractRobot {
     	if (me.unit == SPECS.PREACHER) {
     		if (turn == 1) {
     			log("Preacher");
+    			spawn[0] = me.x;
+                spawn[1] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
     	}
@@ -141,11 +157,12 @@ public class MyRobot extends BCAbstractRobot {
      */
     public boolean isPassable(int x, int y) {
     	boolean[][] m = getPassableMap();
+    	int[][] r = getVisibleRobotMap();
     	if(x<0 || y<0 || x>m.length || y>m.length)
     	{
     		return false;
     	}
-    	if (m[x][y] == true) {
+    	if (m[x][y] == true && r[x][y] == 0) {
     		return true;
     	}
     	return false;
@@ -170,7 +187,7 @@ public class MyRobot extends BCAbstractRobot {
     public boolean isFuelMine(int x, int y)
     {
     	boolean[][] fuel = getFuelMap(); 
-    	if(isPassable(x,y) && fuel[x][y])
+    	if(fuel[x][y])
     	{
     		return true;
     	}
@@ -184,7 +201,7 @@ public class MyRobot extends BCAbstractRobot {
     public boolean isKarboniteMine(int x, int y)
     {
     	boolean[][] karb = getKarboniteMap(); 
-    	if(isPassable(x,y) && karb[x][y])
+    	if(karb[x][y])
     	{
     		return true;
     	}
@@ -227,27 +244,7 @@ public class MyRobot extends BCAbstractRobot {
 	    			}
    		 }
    	 }
-   	 /*
-   	 while(r<5) {} 
-     	 for(int i = -1*r; i<=r;i++)
-   	 {
-   		 for(int j = -1*r; j<=r; j++)
-   		 {
-	    		if(!visited[x+i][y+j])
-	    		{
-	    			//if tile is a mine and is closest
-	    			if(isFuelMine(x+i,y+j)&&(i*i+j*j)<r2)
-	    			{
-	    				r2 = i*i+j*j;
-	    				mine = new int[] {x+i,y+j};
-	    				//return mine;
-	    			}
-	    			visited[x+i][y+j] = true;
-	    		}
-   		 }
-   	 }
-   	 
-   	 */
+  
      	 if(r2<Integer.MAX_VALUE)
      	 {
      		 log("Mine at ("+mine[0]+","+mine[1]);
@@ -273,26 +270,27 @@ public class MyRobot extends BCAbstractRobot {
     	if (dest[0] == -1 || dest[1] == -1) {
     		dx = (int)(Math.random()*3)-1;
     		dy = (int)(Math.random()*3)-1;
+    		return move(dx,dy);
     	}
     	
     	dx = dest[0] - me.x;
     	dy = dest[1] - me.y;
   
     	boolean change_dx = true;
-    	while (!(dx*dx + dy*dy <= range) && !isPassable(me.x + dx, me.y + dy)) {
-    		if (change_dx && x >= 0) {
+    	while ((!(dx*dx + dy*dy <= range) || !isPassable(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
+    		if (change_dx && dx > 0) {
     			dx--;
     			change_dx = false;
     		}
-    		else if (!change_dx && y >=0) {
+    		else if (!change_dx && dy > 0) {
     			dy--;
     			change_dx = true;
     		}
-    		else if (change_dx && x < 0) {
+    		else if (change_dx && dx < 0) {
     			dx++;
     			change_dx = false;
     		}
-    		else if (!change_dx && y < 0) {
+    		else if (!change_dx && dy < 0) {
     			dy++;
     			change_dx = true;
     		}
