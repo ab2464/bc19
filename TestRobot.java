@@ -78,6 +78,11 @@ public class MyRobot extends BCAbstractRobot {
     		if (turn == 1) {
     			log("I am pilgrim" + me.id);
                  
+    			
+    			//test
+    			findMine(me.x,me.y,false);
+    			
+    			
                 //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
     		}
     		//if its a pilgrim call findMine here
@@ -201,35 +206,60 @@ public class MyRobot extends BCAbstractRobot {
     public int[] findMine(int x, int y, boolean isFuel) {
     	 boolean[][] fm = getFuelMap();
     	 boolean[][] km = getKarboniteMap();
+    	 boolean[][] visited = new boolean[fm.length][fm.length];
     	
     	 //closest mine and distance in units of r^2
     	 int[] mine = new int[2]; 
     	 int r2 = Integer.MAX_VALUE;
-    	 
+    	 int d = 0;
     	 
     	 //use a breadth-first search to find nearest mine within a 10x10 grid 
     	 int r = 1;
-    	 while(r<5) {
-    		 
+    	 for(int i = 0; i<km.length;i++){
+    		 if((i-x)*(i-x)>r2) {
+    			 continue;
+    		 }
+    		 for(int j = 0; j<km.length;j++) {
+    			 if((j-y)*(j-y)>r2) {
+    				 continue;
+    			 }
+    			 d =(i-x)*(i-x)+(j-y)*(j-y);
+    			 if(km[i][j]&&d<r2)
+	    			{
+	    				r2 = d;
+	    				mine = new int[] {x+i,y+j};
+	    				//return mine;
+	    			}
+    		 }
+    	 }
+    	 /*
+    	 while(r<5) {} 
       	 for(int i = -1*r; i<=r;i++)
     	 {
     		 for(int j = -1*r; j<=r; j++)
     		 {
-    			
-    			//if tile is a mine and is closest
-    			if(isFuelMine(x+i,y+j)&&(i*i+j*j)<r2)
-    			{
-    				r2 = i*i+j*j;
-    				mine = new int[] {x+1,y+j};
-    				//return mine;
-    			}
+	    		if(!visited[x+i][y+j])
+	    		{
+	    			//if tile is a mine and is closest
+	    			if(isFuelMine(x+i,y+j)&&(i*i+j*j)<r2)
+	    			{
+	    				r2 = i*i+j*j;
+	    				mine = new int[] {x+i,y+j};
+	    				//return mine;
+	    			}
+	    			visited[x+i][y+j] = true;
+	    		}
     		 }
     	 }
+    	 
+    	 */
       	 if(r2<Integer.MAX_VALUE)
       	 {
+      		 log("Mine at ("+mine[0]+","+mine[1]);
       		 return mine;
       	 }
-    	}
+    	
+    	
     	 
     	 
     	 return null;
