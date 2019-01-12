@@ -299,106 +299,235 @@ public class MyRobot extends BCAbstractRobot {
    }
     
     
-    // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
-    
-    public MoveAction findMove(int range, int[] dest) //range = r^2, des = destination calculated by another function
-    {
-    	// if there is no unit to go to, it can move randomly 
-    	//boolean[][] map = getPassableMap();
-    	
-    	int dx = 0;
-    	int dy = 0;
-    	
-    	// check if passable???
-    	if (dest[0] == -1 || dest[1] == -1)
-    	{
-    		//change the signs
-    		int a;
-    		int b;
-    		if(Math.random()>0.5)
-    		{
-    			a = 1;
-    		}
-    		else
-    		{
-    			a = -1;
-    		}
-    		if(Math.random()>0.5)
-    		{
-    			b = 1;
-    		}
-    		else
-    		{
-    			b = -1;
-    		}
-    		
-    		
-    		for(int i = -1;i<=1;i++) {
-    			for(int j = -1;j<=1;j++) {
-    				dx = i*a;
-    				dy = j*b;
-    				if(!(i==0&&j==0)&& isPassableEmpty(me.y+dy,me.x+dx)) {
-			    		return move(dx,dy);
-    				}
-    			}
-    		}
-    		log("Can't move!");
-    		return null;
-    		
-    	}
-    	dx = dest[1] - me.x;
-    	dy = dest[0] - me.y;
-    	
-    	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
-    		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
-    			dy--;
-    			dx--;
-    		}
-    		else {
-    			break;
-    		}	
-    	}
-    	return move(dx,dy);
-    	/**/
+    /** finds the max in a non-empty arraylist where you are comparing the last item for maximum
+     * make sure to cast back to an int 
+     */
+//     public int[] findMin(ArrayList<Integer[]> arr) {
+//     	Integer[] minArr = arr.get(0);
+//     	int last = minArr.length - 1;
+//     	Integer min = minArr[last];
+//     	for(int counter = 0; counter < arr.size(); counter++) {
+//     		if(arr.get(counter)[last] < min) {
+//     			min = arr.get(counter)[last];
+//     			minArr = arr.get(counter);
+//     		}
+//     	}
+//     	for(int counter1 = 0; counter1 < minArr.length; counter1++) {
+//     		minArr[counter1] = (int) minArr[counter1];
+//     	}
+//     	return minArr;
+//     }
+     
+     
+     
+     /**
+      * 
+      * @param range
+      * @param dest
+      * @return
+      */
+     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
+     
+     public MoveAction findMove(int range, int[] dest) //range = r^2, des = destination calculated by another function
+     {
+     	// if there is no unit to go to, it can move randomly 
+     	boolean[][] m = getPassableMap();
+     	
+     	int dx = 0;
+     	int dy = 0;
+     	
+     	// check if passable???
+     	if (dest[0] == -1 || dest[1] == -1)
+     	{
+     		//change the signs
+     		int a;
+     		int b;
+     		if(Math.random()>0.5) {
+     			a = 1;
+     		}
+     		else {
+     			a = -1;
+     		}
+     		if(Math.random()>0.5) {
+     			b = 1;
+     		}
+     		else{
+     			b = -1;
+     		}
+     		for(int i = -1;i<=1;i++) {
+     			for(int j = -1;j<=1;j++) {
+     				dx = i*a;
+     				dy = j*b;
+     				if(!(i==0&&j==0)&& isPassableEmpty(me.y+dy,me.x+dx)) {
+ 			    		return move(dx,dy);
+     				}
+     			}
+     		}
+     		log("Can't move!");
+     		return null;
+     		
+     	}
+     	dx = dest[1] - me.x;
+     	dy = dest[0] - me.y;
+     	
+//     KEEP EVERYTHING ABOVE - BASIC FUNCTIONALITY - WORKS
+     	
+     	
+     	// 5. list of all possible moves with given range - find the one that is closest to destination
+     	int a = Math.abs(dest[0] - me.y);
+     	int b = Math.abs(dest[1] - me.x); 
+     	int minimum = a*a + b*b;
+     	int ddy = dest[0] - me.y;
+     	int ddx = dest[1] - me.x;
+     	//ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
+     	// top right quadrant, including axis
+     	for(int i = 0; i <= a; i++) {
+     		for(int j = 0; j <= b; j++) {
+     			if ((i*i + j*j) <= range && isPassableEmpty(i, j)) {
+     				// [y, x, r^2]
+     				int rr1 = (dy-i)*(dy-i) + (dx-j)*(dx-j);
+     				if(rr1 < minimum) {
+     					minimum = rr1;
+     					ddy = i;
+     					ddx = j;
+     				}
+     				//possibleMoves.add(new Integer[] {(Integer) i, (Integer) j, (Integer)(rr1)});
+     			}
+     		}
+     	}
+     	// bottom right quadrant 
+     	for(int k = -a; k != 0; k++) {
+     		for(int l = 0; l <= b; l++) {
+     			if ((k*k + l*l) <= range && isPassableEmpty(k, l)) {
+     				int rr2 = (dy-k)*(dy-k) + (dx-l)*(dx-l);
+     				if(rr2 < minimum) {
+     					minimum = rr2;
+     					ddy = k;
+     					ddx = l;
+     				}
+     				//possibleMoves.add(new Integer[] {(Integer) k, (Integer) l, (Integer)(rr2)});
+     			}
+     		}
+     	}
+     	// top left quadrant
+     	for(int m = 0; m <= a; m++) {
+     		for(int n = -b; n != 0; n++) {
+     			if ((m*m + n*n) <= range && isPassableEmpty(m, n)) {
+     				int rr3 = (dy-m)*(dy-m) + (dx-n)*(dx-n);
+     				if(rr1 < minimum) {
+     					minimum = rr3;
+     					ddy = m;
+     					ddx = n;
+     				}
+     				//possibleMoves.add(new Integer[] {(Integer) m, (Integer) n, (Integer)(rr3)});
+     			}
+     		}
+     	}
+     	// bottom left quadrant
+     	for(int p = -a; p != 0; p++) {
+     		for(int q = -b; q != 0; q++) {
+     			if ((p*p + q*q) <= range && isPassableEmpty(p, q)) {
+     				int rr4 = (dy-p)*(dy-p) + (dx-q)*(dx-q);
+     				if(rr4 < minimum) {
+     					minimum = rr4;
+     					ddy = p;
+     					ddx = q;
+     				}
+     				//possibleMoves.add(new Integer[] {(Integer) p, (Integer) q, (Integer)(rr4)});
+     			}
+     		}
+     	}
+     	dy = ddy;
+     	dx = ddx;
+     	//int[] closest = findMin(possibleMoves);
+     	//dy = closest[0];
+     	//dx = closest[1]; 
+     	// what if the closest one is not possible? 
+     	
+     	
+     	
+     	
+     	// 1. basic method
+//     	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
+//     		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
+//     			dy--;
+//     			dx--;
+//     		}
+//     		else {
+//     			break;
+//     		}	
+//     	}
+     	
+     	
+     	// 2. furthest one can move iterative 
+     	// intended direction while loop MAYBE FIX THIS???
+//     	while(Math.abs(dx) != 0 || Math.abs(dy) != 0) {
+//     		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
+//     			int dy2 = dy - 1;
+//     			int dx2 = dx - 1;
+//     			if ((dy2*dy2 + dx*dx) >= (dy*dy + dx2*dx2)) {
+//     				if(isPassableEmpty(me.y + dy2, me.x + dx)) {
+//     					dy = dy2;
+//     				}
+//     				else if () {
+//     					dx = dx2;
+//     				}
+//     			}
+//     			else {
+//     				dx = dx2;
+//     			}
+//     		}
+//     	}
+     	// another while loop for another direction
+     	
 
-//  
-//    	
-//    	boolean change_dx = true;
-//    	while ((!(dx*dx + dy*dy <= range) || !isPassable(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
-//    		if (change_dx && dx > 0) {
-//    			dx--;
-//    			change_dx = false;
-//    		}
-//    		else if (!change_dx && dy > 0) {
-//    			dy--;
-//    			change_dx = true;
-//    		}
-//    		else if (change_dx && dx < 0) {
-//    			dx++;
-//    			change_dx = false;
-//    		}
-//    		else if (!change_dx && dy < 0) {
-//    			dy++;
-//    			change_dx = true;
-//    		}
-//    	}
-//    	
-//		
-//		
-    	
-//		int dx = (int)(Math.random()*3)-1;
-//		int dy = (int)(Math.random()*3)-1;
-//    	
-//    	//while(!isPassable(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
-//    	while(!isPassable(me.x+dx,me.y+dy))
-//    	{
-//    		dx = (int)(Math.random()*3)-1;
-//    		dy = (int)(Math.random()*3)-1;
-//    	}
-//		return move(dx,dy);
-//    	
-//    	//return null;
-    }
+//   	3. boolean indicator does not work - times out
+//     	
+//     	boolean change_dx = true;
+//     	while ((!(dx*dx + dy*dy <= range) || !isPassableEmpty(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
+//     		if (change_dx && dx > 0) {
+//     			dx--;
+//     			change_dx = false;
+//     		}
+//     		else if (!change_dx && dy > 0) {
+//     			dy--;
+//     			change_dx = true;
+//     		}
+//     		else if (change_dx && dx < 0) {
+//     			dx++;
+//     			change_dx = false;
+//     		}
+//     		else if (!change_dx && dy < 0) {
+//     			dy++;
+//     			change_dx = true;
+//     		}
+//     	}
+//     	
+// 		
+     	
+     	
+
+     	// 4. random method - very basic - works
+// 		int dx = (int)(Math.random()*3)-1;
+// 		int dy = (int)(Math.random()*3)-1;
+//     	
+//     	//while(!isPassableEmpty(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
+//     	while(!isPassableEmpty(me.x+dx,me.y+dy))
+//     	{
+//     		dx = (int)(Math.random()*3)-1;
+//     		dy = (int)(Math.random()*3)-1;
+//     	}
+// 		return move(dx,dy);
+//     	
+//     	//return null;
+     	
+     	
+     	
+     	
+     	
+     	return move(dx,dy);
+     }
+
 
     
     
