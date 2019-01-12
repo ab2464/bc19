@@ -105,7 +105,8 @@ public class MyRobot extends BCAbstractRobot {
     			//des = spawn;
     		}
     		if(isFull() && g!=null) {
-    				return g;
+    			log("Give resources");	
+    			return g;
     		}
     		if(me.y==spawn[0] && me.x==spawn[1])
     		{
@@ -519,7 +520,7 @@ public class MyRobot extends BCAbstractRobot {
     			if(isPassable(me.y+j,me.x+i) && robotMap[me.y+j][me.x+i]>0){	
     				r = getRobot(robotMap[me.y+j][me.x+i]);
     				if((r.unit==0 || r.unit == 1) && me.team==r.team ) {
-    					log("Give resources");
+    					
     					return give(i,j,me.karbonite,me.fuel);
     					}
     				}
