@@ -89,7 +89,7 @@ public class MyRobot extends BCAbstractRobot {
     		//if its a pilgrim call findMine here
         	
     		
-        	
+        	GiveAction g = deposit();
     		boolean isFuel = true; 
     		
     		if(me.karbonite<20 && des[0]<0 && des[1]<0) {
@@ -102,11 +102,15 @@ public class MyRobot extends BCAbstractRobot {
     		}
     		if(me.karbonite ==20)
     		{
-    			des = spawn;
+    			//des = spawn;
+    		}
+    		if(isFull() && g!=null) {
+    				return g;
     		}
     		if(me.y==spawn[0] && me.x==spawn[1])
     		{
     			log("HOME");
+    			
     		}
     		MoveAction m = findMove(4, des); 	
     		
@@ -174,17 +178,33 @@ public class MyRobot extends BCAbstractRobot {
     	
 	}
     
+    /** Returns true if the specified square of the grid is passable and empty.
+     *  Returns false otherwise.
+     */
+    public boolean isPassableEmpty(int y, int x) {
+    	boolean[][] m = getPassableMap();
+    	int[][] r = getVisibleRobotMap();
+    	if(x<0 || y<0 || x>m.length-1 || y>m.length-1)
+    	{
+    		return false;
+    	}
+    	if (m[y][x] == true && r[y][x] == 0) {
+    		return true;
+    	}
+    	return false;
+    }
+    
     /** Returns true if the specified square of the grid is passable.
      *  Returns false otherwise.
      */
     public boolean isPassable(int y, int x) {
     	boolean[][] m = getPassableMap();
-    	int[][] r = getVisibleRobotMap();
-    	if(x<0 || y<0 || x>m.length || y>m.length)
+    	
+    	if(x<0 || y<0 || x>m.length-1 || y>m.length-1)
     	{
     		return false;
     	}
-    	if (m[y][x] == true && r[y][x] == 0) {
+    	if (m[y][x] == true) {
     		return true;
     	}
     	return false;
@@ -258,7 +278,7 @@ public class MyRobot extends BCAbstractRobot {
    				 continue;
    			 }
    			 d =(i-x)*(i-x)+(j-y)*(j-y);
-   			 if(km[j][i]&&d<r2 && isPassable(j,i))
+   			 if(km[j][i]&&d<r2 && isPassableEmpty(j,i))
 	    			{
 	    				r2 = d;
 	    				mine = new int[] {y+j,x+i};
@@ -291,12 +311,32 @@ public class MyRobot extends BCAbstractRobot {
     	// check if passable???
     	if (dest[0] == -1 || dest[1] == -1)
     	{
+    		//change the signs
+    		int a;
+    		int b;
+    		if(Math.random()>0.5)
+    		{
+    			a = 1;
+    		}
+    		else
+    		{
+    			a = -1;
+    		}
+    		if(Math.random()>0.5)
+    		{
+    			b = 1;
+    		}
+    		else
+    		{
+    			b = -1;
+    		}
+    		
     		
     		for(int i = -1;i<=1;i++) {
     			for(int j = -1;j<=1;j++) {
-    				dx = i;
-    				dy = j;
-    				if(!(i==0&&j==0)&& isPassable(me.y+j,me.x+i)) {
+    				dx = i*a;
+    				dy = j*b;
+    				if(!(i==0&&j==0)&& isPassableEmpty(me.y+dy,me.x+dx)) {
 			    		return move(dx,dy);
     				}
     			}
@@ -309,7 +349,7 @@ public class MyRobot extends BCAbstractRobot {
     	dy = dest[0] - me.y;
     	
     	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
-    		if ( !(dx*dx + dy*dy <= range && isPassable(me.y + dy, me.x + dx))) {
+    		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
     			dy--;
     			dx--;
     		}
@@ -457,10 +497,31 @@ public class MyRobot extends BCAbstractRobot {
     	{
     		for(int j = -1;j<=1;j++)
     		{
-    			if(isPassable(me.y+j,me.x+i)&&!(i==0&&j==0)&& robotMap[me.y+j][me.x+i]==0)
+    			if(isPassableEmpty(me.y+j,me.x+i)&&!(i==0&&j==0)&& robotMap[me.y+j][me.x+i]==0)
     			{	
     				log("Build unit "+unit);
     				return buildUnit(unit,i,j);
+    				}
+    		}
+    	}
+    	return null;
+    }
+    
+    public GiveAction deposit()
+    {
+    	
+    	Robot r = null;
+    	int[][] robotMap = getVisibleRobotMap();
+    	for(int i=-1;i<=1;i++)
+    	{
+    		for(int j = -1;j<=1;j++)
+    		{
+    			if(isPassable(me.y+j,me.x+i) && robotMap[me.y+j][me.x+i]>0){	
+    				r = getRobot(robotMap[me.y+j][me.x+i]);
+    				if((r.unit==0 || r.unit == 1) && me.team==r.team ) {
+    					log("Give resources");
+    					return give(i,j,me.karbonite,me.fuel);
+    					}
     				}
     		}
     	}
@@ -496,11 +557,6 @@ public class MyRobot extends BCAbstractRobot {
     			return attack;
     		}
     	}
-    	
-    	
-    	
-    	
-    	
     	return attack; 
     	
     	
