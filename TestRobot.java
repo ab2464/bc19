@@ -305,6 +305,62 @@ public class MyRobot extends BCAbstractRobot {
    	 
    }
     
+    
+    
+//    /** finds the correct square?? DOES NOT CHECK CORNER SQUARES 
+//     * 
+//     */
+//    public MoveAction adjustMove(int range, int[] dest, int dy, int dx) {
+//    	if(dy*dy + dx*dx <= range && isPassableEmpty(dy, dx)) {
+//			return move(dy, dx);
+//		}
+//		else { // recursive once you find the correct OR use helper function
+//			int dy2 = dy - 1;
+//			int dx2 = dx - 1;
+//			if ((dy2*dy2 + dx*dx) >= (dy*dy + dx2*dx2)) {
+//				
+//			}
+//			// if one is better than the other, check if it's passable and in the range
+//			// if so, return it
+//			// if not, check if the other is passable and in the range
+//			// if so, return it
+//			// if not, then recursively call 
+//			
+//		}
+//    }
+    
+    
+    /** picks a semi-random place to move to - default case of findMove just abstracted out
+     * change parameters????????????
+     */
+    public MoveAction findMoveHelperRandom(int dy, int dx) {
+    	int a;
+		int b;
+		if(Math.random()>0.5) {
+			a = 1;
+		}
+		else {
+			a = -1;
+		}
+		if(Math.random()>0.5) {
+			b = 1;
+		}
+		else{
+			b = -1;
+		}
+		for(int i = -1 ; i <= 1; i++) {
+			for(int j = -1; j <= 1; j++) {
+				dx = i*a;
+				dy = j*b;
+				if(!(i == 0 && j == 0) && isPassableEmpty(me.y + dy, me.x + dx)) {
+		    		return move(dx,dy);
+				}
+			}
+		}
+		log("Can't move!");
+		return null;
+    }
+    
    
     /**
      * 
@@ -326,86 +382,88 @@ public class MyRobot extends BCAbstractRobot {
     	//check if there is a dest
     	if (dest[0] == -1 || dest[1] == -1)
     	{
-    		//change the signs
-    		int a;
-    		int b;
-    		if(Math.random()>0.5) {
-    			a = 1;
-    		}
-    		else {
-    			a = -1;
-    		}
-    		if(Math.random()>0.5) {
-    			b = 1;
-    		}
-    		else{
-    			b = -1;
-    		}
-    		for(int i = -1;i<=1;i++) {
-    			for(int j = -1;j<=1;j++) {
-    				dx = i*a;
-    				dy = j*b;
-    				if(!(i==0&&j==0)&& isPassableEmpty(me.y+dy,me.x+dx)) {
-			    		return move(dx,dy);
-    				}
-    			}
-    		}
-    		log("Can't move!");
-    		return null;
-    		
+    		return findMoveHelperRandom(dy, dx);
     	}
-    	dx = dest[1] - me.x;
     	dy = dest[0] - me.y;
+    	dx = dest[1] - me.x;
     	
 //    KEEP EVERYTHING ABOVE - BASIC FUNCTIONALITY - WORKS
+    	
+    	int a = Math.abs(dy);
+    	int b = Math.abs(dx); 
+    	int ddy = dy;
+    	int ddx = dx;
+    	int minimum = dy*dy + dx*dx; // r^2
+    	int count = 0;
+//    	ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
+    	// top right quadrant, including axis
+    	for(int i = 0; i <= a; i++) {
+    		for(int j = 0; j <= b; j++) {
+    			if ((i*i + j*j) <= range && isPassableEmpty(i, j)) {
+    				// [y, x, r^2]
+    				int rr1 = (dy-i)*(dy-i) + (dx-j)*(dx-j);
+    				if(rr1 < minimum) {
+    					minimum = rr1;
+    					ddy = i;
+    					ddx = j;
+    				}
+//    				possibleMoves.add(new Integer[] {(Integer) i, (Integer) j, (Integer)(rr1)});
+    			}
+    			count++;
+    		}
+    	}
+    	if (count == 0) {
+    		return findMoveHelperRandom(dy, dx);
+    	}
+    	dy = ddy;
+    	dx = ddx;
+    	// what to do if it doesn't move???????????
+    	
     	
     	
     	
     	//6. simple search of all nearby nodes
     	/*
     	 *  * */
-    	 if(me.x == dest[1] && me.y == dest[0]){
-    		 log("arrived!");
-    		 return null; 
-    	 }
-    	 if(dx*dx+dy*dy<=range) {
-    		 if( isPassableEmpty(dest[1],dest[0])) {
-    			 return move(dx,dy);
-    		 }
-    	 }
-    	 int r2 = Integer.MAX_VALUE;
-    	 int d = r2;
-    	 int[] move = new int[2];
-    	 for(int i = -3;i<=3;i++) {
-    	 	if(i*i>range) {
-    	 		continue;
-    	 	}
-    	 	for(int j = -3;j<=3;j++) {
-    	 		if(j*j>range) {
-    	 			continue;
-    	 		}
-    	 		if(isPassableEmpty(me.y+j,me.x+i) && !(i==0 && j==0)) {
-    	 			d = (dx-i)*(dx-i)+(dy-j)*(dy-j);
-    	 			if(d<=r2 && (i*i+j*j)<=range) {
-    	 				move[0] = j;
-    	 				move[1] = i;
-    	 				r2=d;
-    	 			}
-    	 		}
-    	 	}
-    	 }
-    	 
-    	 dx = move[1];
-    	 dy = move[0];
-    	 if(dx!=0 || dy!=0) {
-    		 log("found move");
-    	 }
-    	 else {
-    		 return null;
-    	 }
-    	 
-
-    	
+//    	 if(me.x == dest[1] && me.y == dest[0]){
+//    		 log("arrived!");
+//    		 return null; 
+//    	 }
+//    	 if(dx*dx+dy*dy<=range) {
+//    		 if( isPassableEmpty(dest[1],dest[0])) {
+//    			 return move(dx,dy);
+//    		 }
+//    	 }
+//    	 int r2 = Integer.MAX_VALUE;
+//    	 int d = r2;
+//    	 int[] move = new int[2];
+//    	 for(int i = -3;i<=3;i++) {
+//    	 	if(i*i>range) {
+//    	 		continue;
+//    	 	}
+//    	 	for(int j = -3;j<=3;j++) {
+//    	 		if(j*j>range) {
+//    	 			continue;
+//    	 		}
+//    	 		if(isPassableEmpty(me.y+j,me.x+i) && !(i==0 && j==0)) {
+//    	 			d = (dx-i)*(dx-i)+(dy-j)*(dy-j);
+//    	 			if(d<=r2 && (i*i+j*j)<=range) {
+//    	 				move[0] = j;
+//    	 				move[1] = i;
+//    	 				r2=d;
+//    	 			}
+//    	 		}
+//    	 	}
+//    	 }
+//    	 
+//    	 dx = move[1];
+//    	 dy = move[0];
+//    	 if(dx!=0 || dy!=0) {
+//    		 log("found move");
+//    	 }
+//    	 else {
+//    		 return null;
+//    	 }
     	
     	
 //    	
@@ -482,7 +540,6 @@ public class MyRobot extends BCAbstractRobot {
 //    	
     	
     	
-    	
     	// 1. basic method
 //    	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
 //    		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
@@ -541,8 +598,6 @@ public class MyRobot extends BCAbstractRobot {
 //    	
 //		
     	
-    	
-
     	// 4. random method - very basic - works
 //		int dx = (int)(Math.random()*3)-1;
 //		int dy = (int)(Math.random()*3)-1;
@@ -558,11 +613,9 @@ public class MyRobot extends BCAbstractRobot {
 //    	//return null;
     	
     	
-    	
-    	
-    	
     	return move(dx,dy);
     }
+    
 
     
     /**
