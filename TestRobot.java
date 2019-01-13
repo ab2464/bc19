@@ -389,28 +389,80 @@ public class MyRobot extends BCAbstractRobot {
     	
 //    KEEP EVERYTHING ABOVE - BASIC FUNCTIONALITY - WORKS
     	
-    	int a = Math.abs(dy);
-    	int b = Math.abs(dx); 
     	int ddy = dy;
     	int ddx = dx;
     	int minimum = dy*dy + dx*dx; // r^2
     	int count = 0;
-//    	ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
+    	//ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
+    	
     	// top right quadrant, including axis
-    	for(int i = 0; i <= a; i++) {
-    		for(int j = 0; j <= b; j++) {
-    			if ((i*i + j*j) <= range && isPassableEmpty(i, j)) {
-    				// [y, x, r^2]
-    				int rr1 = (dy-i)*(dy-i) + (dx-j)*(dx-j);
-    				if(rr1 < minimum) {
-    					minimum = rr1;
-    					ddy = i;
-    					ddx = j;
-    				}
-//    				possibleMoves.add(new Integer[] {(Integer) i, (Integer) j, (Integer)(rr1)});
-    			}
-    			count++;
-    		}
+    	if(dy >= 0 && dx >= 0) { 
+    		for(int i = 0; i <= dy; i++) {
+        		for(int j = 0; j <= dx; j++) {
+        			if (isPassableEmpty(me.y + i, me.x + j) && (i*i + j*j) <= range) {
+        				// [y, x, r^2]
+        				int rr1 = (dy-i)*(dy-i) + (dx-j)*(dx-j);
+        				if(rr1 < minimum) {
+        					minimum = rr1;
+        					ddy = i;
+        					ddx = j;
+        				}
+        				//possibleMoves.add(new Integer[] {(Integer) i, (Integer) j, (Integer)(rr1)});
+        				count++;
+        			}
+        		}
+        	}
+    	}
+    	// bottom right quadrant 
+    	else if (dy < 0 && dx >= 0) {
+    		for(int k = dy; k != 0; k++) {
+        		for(int l = 0; l <= dx; l++) {
+        			if (isPassableEmpty(me.y + k, me.x + l) && (k*k + l*l) <= range) {
+        				int rr2 = (dy-k)*(dy-k) + (dx-l)*(dx-l);
+        				if(rr2 < minimum) {
+        					minimum = rr2;
+        					ddy = k;
+        					ddx = l;
+        				}
+        				//possibleMoves.add(new Integer[] {(Integer) k, (Integer) l, (Integer)(rr2)});
+        				count++;
+        			}
+        		}
+        	}
+    	}
+    	// top left quadrant 
+    	else if (dy >= 0 && dx < 0) {
+    		for(int m = 0; m <= dy; m++) {
+        		for(int n = dx; n != 0; n++) {
+        			if (isPassableEmpty(me.y + m, me.x + n) && (m*m + n*n) <= range) {
+        				int rr3 = (dy-m)*(dy-m) + (dx-n)*(dx-n);
+        				if(rr3 < minimum) {
+        					minimum = rr3;
+        					ddy = m;
+        					ddx = n;
+        				}
+        				//possibleMoves.add(new Integer[] {(Integer) m, (Integer) n, (Integer)(rr3)});
+        				count++;
+        			}
+        		}
+        	}
+    	}
+    	// bottom left quadrant 
+    	else {
+    		for(int p = dy; p != 0; p++) {
+        		for(int q = dx; q != 0; q++) {
+        			if (isPassableEmpty(me.y + p, me.x + q) && (p*p + q*q) <= range) {
+        				int rr4 = (dy-p)*(dy-p) + (dx-q)*(dx-q);
+        				if(rr4 < minimum) {
+        					minimum = rr4;
+        					ddy = p;
+        					ddx = q;
+        				}
+        				//possibleMoves.add(new Integer[] {(Integer) p, (Integer) q, (Integer)(rr4)});
+        				count++;
+        			}
+        		}
+        	}
     	}
     	if (count == 0) {
     		return findMoveHelperRandom(dy, dx);
