@@ -267,10 +267,10 @@ public class MyRobot extends BCAbstractRobot {
      *  isFuel is true if finding a fuel mine, false if finding a karbonite mine
      *  return: array with x and y of nearest mine
      */
-    public int[] findMine(int y, int x, boolean isFuel) {
+  public int[] findMine(int y, int x, boolean isFuel) {
    	 boolean[][] fm = getFuelMap();
    	 boolean[][] km = getKarboniteMap();
-// 	 boolean[][] visited = new boolean[fm.length][fm.length];
+   	 int[][] visible = getVisibleRobotMap();
    	 
    	 //closest mine and distance in units of r^2
    	 int[] mine = new int[2]; 
@@ -288,7 +288,7 @@ public class MyRobot extends BCAbstractRobot {
 //   				 continue;
 //   			 }
    			 d =(i-x)*(i-x)+(j-y)*(j-y);
-   			 if(km[j][i]&&d<r2 && isPassable(j,i)){
+   			 if(km[j][i]&&d<r2 && isPassable(j,i) && visible[j][i]<=0){
 	    				r2 = d;
 	    				mine[0] = j;
 	    				mine[1] = i;
@@ -304,6 +304,7 @@ public class MyRobot extends BCAbstractRobot {
    	 return null;
    	 
    }
+    
     
     
     
