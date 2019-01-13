@@ -76,8 +76,10 @@ public class MyRobot extends BCAbstractRobot {
 //    		}
     	}
     	if (me.unit == SPECS.PILGRIM) {
+    		boolean isFuel = false;
+    		
     		if (turn == 1) {
-    			log("I am pilgrim" + me.id);
+    			log("I am pilgrim " + me.id);
                 spawn[1] = me.x;
                 spawn[0] = me.y;
                 des = new int[] {0,0};
@@ -85,10 +87,10 @@ public class MyRobot extends BCAbstractRobot {
     		}
     		//if its a pilgrim call findMine here
         	GiveAction g = deposit();
-    		boolean isFuel = true; 
+    		
     		//if no destination, find a mine 
     		if(me.karbonite<20 && des[0]<0 && des[1]<0) {
-    			des = findMine(me.y,me.x,false);
+    			des = findMine(me.y,me.x,isFuel);
     		}
     		//if on a mine, mine
     		if((km[me.y][me.x]&&me.karbonite<20) || (fm[me.y][me.x]&&me.fuel<100))
@@ -105,20 +107,20 @@ public class MyRobot extends BCAbstractRobot {
     		//if full and can deposit resources, deposit
     		if(isFull() && g!=null) {
     			log("Give resources Karbonite: "+me.karbonite+" Fuel: "+me.fuel);
-    			des = findMine(me.y,me.x,false);
+    			des = findMine(me.y,me.x,isFuel);
     			return g;
     		}
     		//if back at base, find another mine
     		if(me.y==spawn[0] && me.x==spawn[1]) {
     			log("HOME");
-    			des = findMine(me.y,me.x,false);
+    			des = findMine(me.y,me.x,isFuel);
     		}
     		
     		MoveAction m = findMove(4, des); 	
     		
     		//TESTING MOVE
     		if(m==null) {
-    			des = findMine(me.y,me.x,false);
+    			des = findMine(me.y,me.x,isFuel);
     		} 
 //    		{
 //    			if(des[0] ==spawn[0])
@@ -152,7 +154,7 @@ public class MyRobot extends BCAbstractRobot {
     	
     	if (me.unit == SPECS.CRUSADER) {
     		if (turn == 1) {
-    			log("I am crusader" + me.id);
+    			log("I am crusader " + me.id);
     			spawn[1] = me.x;
                 spawn[0] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
@@ -169,7 +171,7 @@ public class MyRobot extends BCAbstractRobot {
     	
     	if (me.unit == SPECS.PROPHET) {
     		if (turn == 1) {
-    			log("Prophet.");
+    			log("Prophet " + me.id);
     			spawn[1] = me.x;
                 spawn[0] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
@@ -186,7 +188,7 @@ public class MyRobot extends BCAbstractRobot {
     	
     	if (me.unit == SPECS.PREACHER) {
     		if (turn == 1) {
-    			log("Preacher");
+    			log("Preacher "+ me.id);
     			spawn[1] = me.x;
                 spawn[0] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
@@ -267,9 +269,18 @@ public class MyRobot extends BCAbstractRobot {
      *  isFuel is true if finding a fuel mine, false if finding a karbonite mine
      *  return: array with x and y of nearest mine
      */
-  public int[] findMine(int y, int x, boolean isFuel) {
-   	 boolean[][] fm = getFuelMap();
-   	 boolean[][] km = getKarboniteMap();
+    public int[] findMine(int y, int x, boolean isFuel) {
+   	 
+    	boolean[][] m; 
+    	if(isFuel)
+    	{
+    		m = getFuelMap();
+    	}
+    	else {
+    		m = getKarboniteMap();
+    	}
+    	
+    
    	 int[][] visible = getVisibleRobotMap();
    	 
    	 //closest mine and distance in units of r^2
@@ -279,16 +290,16 @@ public class MyRobot extends BCAbstractRobot {
    	 
    	 //brute force find closest unoccupied mine
 // 	 int r = 1;
-   	 for(int i = 0; i<km.length;i++){
+   	 for(int i = 0; i<m.length;i++){
 //   		 if((i-x)*(i-x)>r2) {
 //   			 continue;
 //   		 }
-   		 for(int j = 0; j<km.length;j++) {
+   		 for(int j = 0; j<m.length;j++) {
 //   			 if((j-y)*(j-y)>r2) {
 //   				 continue;
 //   			 }
    			 d =(i-x)*(i-x)+(j-y)*(j-y);
-   			 if(km[j][i]&&d<r2 && isPassable(j,i) && visible[j][i]<=0){
+   			 if(m[j][i]&&d<r2 && isPassable(j,i) && visible[j][i]<=0){
 	    				r2 = d;
 	    				mine[0] = j;
 	    				mine[1] = i;
@@ -304,7 +315,6 @@ public class MyRobot extends BCAbstractRobot {
    	 return null;
    	 
    }
-    
     
     
     
@@ -365,9 +375,10 @@ public class MyRobot extends BCAbstractRobot {
    
     /**
      * 
-     * @param range
-     * @param dest
-     * @return null if no valid move
+     * @param range r^2 range of unit
+     * @param dest destination in int[y][x] format
+     * @return null if dest is in range and occupied, or at dest
+     * 
      */
     // has to be a spot it can reach in one turn. if not, see if it can get as close to it as possible in one turn
     
@@ -390,12 +401,32 @@ public class MyRobot extends BCAbstractRobot {
     	
 //    KEEP EVERYTHING ABOVE - BASIC FUNCTIONALITY - WORKS
     	
+    	
+    	
+    	//method 7
+
     	int ddy = dy;
     	int ddx = dx;
     	int minimum = dy*dy + dx*dx; // r^2
     	int count = 0;
     	//ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
     	
+    	//if unit is at destination return null
+    	if(me.x == dest[1] && me.y == dest[0]){
+    		 log("arrived!");
+    		 return null; 
+    	 }
+    	//if unit is within range of destination move there directly
+    	 if(dx*dx+dy*dy<=range) {
+    		 if( isPassableEmpty(dest[1],dest[0])) {
+    			 return move(dx,dy);
+    		 }
+    		 //if destination is in range and is not empty return null
+//    		 else {
+//    			 return null;
+//    		 }
+//    			
+    	 }
     	// top right quadrant, including axis
     	if(dy >= 0 && dx >= 0) { 
     		for(int i = 0; i <= dy; i++) {
@@ -416,7 +447,7 @@ public class MyRobot extends BCAbstractRobot {
     	}
     	// bottom right quadrant 
     	else if (dy < 0 && dx >= 0) {
-    		for(int k = dy; k != 0; k++) {
+    		for(int k = dy; k != 1; k++) {
         		for(int l = 0; l <= dx; l++) {
         			if (isPassableEmpty(me.y + k, me.x + l) && (k*k + l*l) <= range) {
         				int rr2 = (dy-k)*(dy-k) + (dx-l)*(dx-l);
@@ -434,7 +465,7 @@ public class MyRobot extends BCAbstractRobot {
     	// top left quadrant 
     	else if (dy >= 0 && dx < 0) {
     		for(int m = 0; m <= dy; m++) {
-        		for(int n = dx; n != 0; n++) {
+        		for(int n = dx; n != 1; n++) {
         			if (isPassableEmpty(me.y + m, me.x + n) && (m*m + n*n) <= range) {
         				int rr3 = (dy-m)*(dy-m) + (dx-n)*(dx-n);
         				if(rr3 < minimum) {
@@ -450,8 +481,8 @@ public class MyRobot extends BCAbstractRobot {
     	}
     	// bottom left quadrant 
     	else {
-    		for(int p = dy; p != 0; p++) {
-        		for(int q = dx; q != 0; q++) {
+    		for(int p = dy; p != 1; p++) {
+        		for(int q = dx; q != 1; q++) {
         			if (isPassableEmpty(me.y + p, me.x + q) && (p*p + q*q) <= range) {
         				int rr4 = (dy-p)*(dy-p) + (dx-q)*(dx-q);
         				if(rr4 < minimum) {
@@ -475,7 +506,9 @@ public class MyRobot extends BCAbstractRobot {
     	
     	
     	
-    	//6. simple search of all nearby nodes
+    	
+    	
+    	//6. simple search of all nearby nodes 
     	/*
     	 *  * */
 //    	 if(me.x == dest[1] && me.y == dest[0]){
