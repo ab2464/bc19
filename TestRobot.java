@@ -104,7 +104,7 @@ public class MyRobot extends BCAbstractRobot {
     		
     		//if no destination, find a mine 
     		if(me.karbonite<20 && des[0]<0 && des[1]<0) {
-    			des = findMine(me.x,me.y,false);
+    			des = findMine(me.y,me.x,false);
     		}
     		//if on a mine, mine
     		if((km[me.y][me.x]&&me.karbonite<20) || (fm[me.y][me.x]&&me.fuel<100))
@@ -121,7 +121,7 @@ public class MyRobot extends BCAbstractRobot {
     		//if full and can deposit resources, deposit
     		if(isFull() && g!=null) {
     			log("Give resources Karbonite: "+me.karbonite+" Fuel: "+me.fuel);
-    			des = findMine(me.x,me.y,false);
+    			des = findMine(me.y,me.x,false);
     			return g;
     		}
     		
@@ -129,7 +129,7 @@ public class MyRobot extends BCAbstractRobot {
     		if(me.y==spawn[0] && me.x==spawn[1])
     		{
     			log("HOME");
-    			des = findMine(me.x,me.y,false);
+    			des = findMine(me.y,me.x,false);
     			
     		}
     		
@@ -138,7 +138,7 @@ public class MyRobot extends BCAbstractRobot {
     		
     		//TESTING MOVE
     		if(m==null) {
-    			des = findMine(me.x,me.y,false);
+    			des = findMine(me.y,me.x,false);
     		} 
     			
 //    		{
@@ -661,7 +661,7 @@ public class MyRobot extends BCAbstractRobot {
 //    	}
 //    	else
 //    	{
-//    		//dest = findMine(me.x,me.y,isFuel);
+//    		//dest = findMine(me.y,me.x,isFuel);
 //    	}
     	
     
