@@ -52,6 +52,8 @@ public class MyRobot extends BCAbstractRobot {
     		log("Turn " + turn);
     		if(turn==1) {
     			//castleList.add(me.id);	
+    			log("isVertical: "+isVertical());
+    			
     		}
 //    		if(turn<5 && build(2)!=null)
 //    			return build(2);
@@ -59,21 +61,29 @@ public class MyRobot extends BCAbstractRobot {
 //    			return build(3);
     		if (turn < 3 || (karbonite>=10 && karbonite<20 ) ) {
     			log("Building a pilgrim.");	
+    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
     			return build(2);    			
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
-    		if (karbonite>=20 && fuel > 1000 && getVisibleRobots().length<25) {
-    			log("Building a crusader.");
-    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
-    			return build(3);
-    			//return buildUnit(SPECS.CRUSADER,0,1);
-    		}
-//    		if (karbonite>=30 && fuel > 1000) {
-//    			log("Building a preacher.");
+//    		if (karbonite>=20 && fuel > 1000 && getVisibleRobots().length<25) {
+//    			log("Building a crusader.");
 //    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
-//    			return build(5);
+//    			return build(3);
 //    			//return buildUnit(SPECS.CRUSADER,0,1);
 //    		}
+    		
+    		if (karbonite>=30 && fuel > 500 && getVisibleRobots().length<25) {
+    			log("Building a preacher.");
+    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+    			return build(5);
+    			//return buildUnit(SPECS.CRUSADER,0,1);
+    		}
+    		if (karbonite>=25 && fuel > 500 && getVisibleRobots().length<25) {
+    			log("Building a prophet.");
+    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+    			return build(4);
+    			//return buildUnit(SPECS.CRUSADER,0,1);
+    		}
     	}
     	if (me.unit == SPECS.PILGRIM) {
     		boolean isFuel = false;
@@ -115,6 +125,13 @@ public class MyRobot extends BCAbstractRobot {
     			log("HOME");
     			des = findMine(me.y,me.x,isFuel);
     		}
+    		
+    		//if enough resources AND next to karbonite, build a church
+    		
+    		{}
+    		
+    		
+    		
     		
     		MoveAction m = findMove(4, des); 	
     		
@@ -751,6 +768,15 @@ public class MyRobot extends BCAbstractRobot {
     	return me.fuel==100 || me.karbonite == 20;
     }
     
+    
+    /**@return returns the location of the nearest enemy castle
+     * 
+     */
+    public int[] findCastle(){
+    	
+    	
+    	return new int[] {0,0};
+    }
  
     /**
      * 
