@@ -16,28 +16,29 @@ public class MyRobot extends BCAbstractRobot {
 	public ArrayList<Integer> castleList;
 	public int[] des = new int[] {-1, -1}; 
 	public int[] spawn = new int[2];
-	
-	
-	/** stores information on a robot
-	 *  u is the unit type (1 to 5)
-	 *  i is the unit id
-	 *
-	 */
-	private class Tuple {
-		private int u;
-		private int i;
-		public Tuple(int unit, int id) {
-			u = unit;
-			i = id;
-		}
-		public int getUnit() {
-			return u;
-		}
-		public int getID() {
-			return i;
-		}
-	}
-	
+	public boolean isSignaling = false;
+
+		
+//	/** stores information on a robot
+//	 *  u is the unit type (1 to 5)
+//	 *  i is the unit id
+//	 *
+//	 */
+//	private class Tuple {
+//		private int u;
+//		private int i;
+//		public Tuple(int unit, int id) {
+//			u = unit;
+//			i = id;
+//		}
+//		public int getUnit() {
+//			return u;
+//		}
+//		public int getID() {
+//			return i;
+//		}
+//	}
+//	
 
 	/** completes a turn of the robot
 	 * 
@@ -53,31 +54,82 @@ public class MyRobot extends BCAbstractRobot {
     		if(turn==1) {
     			//castleList.add(me.id);	
     			log("isVertical: "+isVertical());
-    			
+    			findCastle();
+    		
+    			//turn 1 build pilgrim
+    			return build(2);
     		}
+    		
+    		
+    		
+    		if(isSignaling)
+    		{
+    			//second half of destination
+    			signal(des[1],100);
+    			isSignaling=false;
+    		}
+    		
+    		//if enemy units are near, attack 
+    		AttackAction a = findAttack(1,64);
+    		if(a!=null && fuel>10) {
+    			log("Attack!");
+    			return a;
+    		}
+    		
+    		
+    		if (karbonite>=20 && fuel > 500 && getVisibleRobots().length<25) {
+				log("Building a crusader.");
+				log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+				
+				signal(des[0], 100);
+    			isSignaling = true;
+				return build(3);
+			}
+    		//Preacher rush
+    		if (karbonite>=30 && fuel > 500 && getVisibleRobots().length<25) {
+    			log("Building a preacher.");
+    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+    			
+    			//first half of destination
+    			signal(des[0], 2);
+    			isSignaling = true;
+    			return build(5);
+    		}
+    		if ((karbonite>=10 && karbonite<20)) {
+				log("Building a pilgrim.");	
+				log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+				return build(2);
+			}
+    		
+    		
+    		
+    		
+    		//Macro
+    		
+    		
 //    		if(turn<5 && build(2)!=null)
 //    			return build(2);
 //    		if(turn<15 || me.karbonite>20)
 //    			return build(3);
-    		if (turn < 3 || (karbonite>=10 && karbonite<20 ) ) {
-    			log("Building a pilgrim.");	
-    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
-    			return build(2);    			
-    			//return buildUnit(SPECS.PILGRIM,1,0);
-    		}
+//    		if (turn < 3 || (karbonite>=10 && karbonite<20 ) ) {
+//    			log("Building a pilgrim.");	
+//    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+//    			return build(2);    			
+//    			//return buildUnit(SPECS.PILGRIM,1,0);
+//    		}
 //    		if (karbonite>=20 && fuel > 1000 && getVisibleRobots().length<25) {
 //    			log("Building a crusader.");
 //    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
 //    			return build(3);
 //    			//return buildUnit(SPECS.CRUSADER,0,1);
 //    		}
-    		
-    		if (karbonite>=30 && fuel > 500 && getVisibleRobots().length<25 && turn % 3==0) {
-    			log("Building a preacher.");
-    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
-    			return build(5);
-    			//return buildUnit(SPECS.CRUSADER,0,1);
-    		}
+//    		
+//    		if (karbonite>=30 && fuel > 500 && getVisibleRobots().length<25 && turn % 3==0) {
+//    			log("Building a preacher.");
+//    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
+//    			return build(5);
+//    			//return buildUnit(SPECS.CRUSADER,0,1);
+//    		}
 //    		if (karbonite>=25 && fuel > 500 && getVisibleRobots().length<25) {
 //    			log("Building a prophet.");
 //    			log("Karbonite: "+karbonite+"  Fuel: "+ fuel);
@@ -88,23 +140,24 @@ public class MyRobot extends BCAbstractRobot {
     	if (me.unit == SPECS.PILGRIM) {
     		
     		boolean isFuel = false;
+    		if(fuel<500 || karbonite > 100){
+    			isFuel = true;
+    		}
     		
     		if (turn == 1) {
     			log("I am pilgrim " + me.id);
                 spawn[1] = me.x;
                 spawn[0] = me.y;
-                //des = new int[] {0,0};
-                //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
     		}
-    		//if its a pilgrim call findMine here
-        	GiveAction g = deposit();
     		
+        	GiveAction g = deposit();
+    	
     		//if no destination, find a mine 
-    		if(me.karbonite<20 && des[0]<0 && des[1]<0) {
+    		if((me.karbonite<20 && des[0]<0 && des[1]<0)||turn%5==0) {
     			des = findMine(me.y,me.x,isFuel);
     		}
     		//if on a mine, mine
-    		if((km[me.y][me.x]&&me.karbonite<20) || (fm[me.y][me.x]&&me.fuel<100))
+    		if(((km[me.y][me.x]&&me.karbonite<20 ) || (fm[me.y][me.x]&&me.fuel<100 &&isFuel)))
     		{
     			log("MINING ("+me.y+","+me.x+")");
     			return mine();
@@ -124,22 +177,20 @@ public class MyRobot extends BCAbstractRobot {
     		//if back at base, find another mine
     		if(me.y==spawn[0] && me.x==spawn[1]) {
     			log("HOME");
-    			
+    			}
+    		
+    		
+    		//if enough resources AND next to karbonite, build a church	(200 fuel, 50 karb)
+    		if(fuel>1000 && karbonite>50){
     			
     		}
-    		
-    		//if enough resources AND next to karbonite, build a church
-    		
-    		{}
-    		
-    		
-    		
     		
     		MoveAction m = findMove(4, des); 	
     		
     		//TESTING MOVE
     		if(m==null) {
     			des = findMine(me.y,me.x,isFuel);
+    			m = findMove(4, des); 
     		} 
 //    		{
 //    			if(des[0] ==spawn[0])
@@ -178,12 +229,37 @@ public class MyRobot extends BCAbstractRobot {
                 spawn[0] = me.y;
     			//return buildUnit(SPECS.PILGRIM,1,0);
     		}
+    		
+    		//make a separate method? 
+    		ArrayList<bc19.Robot> signals = getSignal(); 
+    		for(int i = 0; i<signals.size();i++)
+    		{
+    			if(signals.get(i).unit==0) {
+    				if(turn==1) {
+    					des[0] = signals.get(i).signal;
+    					return null;
+    				}
+    				else if(turn==2) {
+    					des[1] = signals.get(i).signal;
+    				}
+    				
+    			}
+    		}
+    		
     		AttackAction a = findAttack(1,16);
     		if(a!=null && fuel>10) {
-    			log("Attack!");
+    			//log("Attack!");
     			return a;
     		}
     		if(fuel>10) {
+    			
+    			//testing communication 
+    			if(des[0]<0 || des[1]<0)
+    			{
+    				return null;
+    			}
+    			
+    			
     			return findMove(9, des);
     		}
     	}
@@ -214,20 +290,44 @@ public class MyRobot extends BCAbstractRobot {
     		}
     		AttackAction a = findAttack(1,16);
     		if(a != null && fuel > 15) {
-    			log("Attack!");
+    			//log("Attack!");
     			return a;
     		}
     		
-    		//TESTING FIND CASTLE AND MOVE
-    		if(des[0]<0 && des[1]<0 && turn ==1) {
-    			findCastle();
+    		
+    		//testing communication
+    		ArrayList<bc19.Robot> signals = getSignal(); 
+    		for(int i = 0; i<signals.size();i++)
+    		{
+    			if(signals.get(i).unit==0) {
+    				if(turn==1) {
+    					des[0] = signals.get(i).signal;
+    					return null;
+    				}
+    				else if(turn==2) {
+    					des[1] = signals.get(i).signal;
+    				}
+    				
+    			}
     		}
-    		MoveAction m = findMove(4, des); 	
-    		if(m==null) {
-    			des = new int[] {-1,-1};
-    			m = findMove(4, des); 	
-    		} 
-    		//END TESTING
+    		
+    		
+//    		//TESTING FIND CASTLE AND MOVE
+//    		if(des[0]<0 && des[1]<0) {
+//    			if(turn==1) {
+//    				findCastle();
+//    			}
+//    			else
+//    			{
+//    				
+//    			}
+//    		}
+//    		MoveAction m = findMove(4, des); 	
+//    		if(m==null) {
+//    			des = new int[] {-1,-1};
+//    			m = findMove(4, des); 	
+//    		} 
+//    		//END TESTING
     		
     		
     		if(fuel>12) {
@@ -305,10 +405,10 @@ public class MyRobot extends BCAbstractRobot {
    	 
     	boolean[][] m; 
     	
-    	//if(isFuel)
+    	//
     	//Testing: find mine looks for mine based on total reserves
-    	if(fuel<500 && karbonite >20)
-    	{
+    	//if(fuel<500 && karbonite >20)
+    	if(isFuel){
     		m = getFuelMap();
     	}
     	else {
@@ -436,8 +536,8 @@ public class MyRobot extends BCAbstractRobot {
     	
 //    KEEP EVERYTHING ABOVE - BASIC FUNCTIONALITY - WORKS
     	
-//    	
-//    	
+    	
+    	
 //    	//method 7
 //
 //    	int ddy = dy;
@@ -449,12 +549,14 @@ public class MyRobot extends BCAbstractRobot {
 //    	//if unit is at destination return null
 //    	if(me.x == dest[1] && me.y == dest[0]){
 //    		 log("arrived!");
-//    		 return null; 
+//    		 return move(dx,dy); 
 //    	 }
 //    	//if unit is within range of destination move there directly
 //    	 if(dx*dx+dy*dy<=range) {
 //    		 if( isPassableEmpty(dest[1],dest[0])) {
-//    			 return move(dx,dy);
+//    			  //des = new int[] {-1,-1};
+//    			  return move(dx,dy);
+//    			
 //    		 }
 //    		 //if destination is in range and is not empty return null
 //    		 else {
@@ -532,6 +634,7 @@ public class MyRobot extends BCAbstractRobot {
 //        	}
 //    	}
 //    	if (count == 0) {
+//    		des = new int[] {-1,-1};
 //    		return findMoveHelperRandom(dy, dx);
 //    	}
 //    	dy = ddy;
@@ -553,8 +656,11 @@ public class MyRobot extends BCAbstractRobot {
     		 return null; 
     	 }
     	 if(dx*dx+dy*dy<=range) {
-    		 if( isPassableEmpty(dest[1],dest[0])) {
+    		 if( isPassableEmpty(dest[0],dest[1])) {
     			 return move(dx,dy);
+    		 }
+    		 else {
+    			 return null;
     		 }
     	 }
     	 int r2 = Integer.MAX_VALUE;
@@ -582,161 +688,13 @@ public class MyRobot extends BCAbstractRobot {
     	 dx = move[1];
     	 dy = move[0];
     	 if(dx!=0 || dy!=0) {
-    		 log("found move");
+    		 //log("found move");
     	 }
     	 else {
-    		 return null;
+    		 des = new int[] {-1,-1};
+     		 return findMoveHelperRandom(dy, dx);
     	 }
-    	
-    	
-//    	
-//    	// 5. list of all possible moves with given range - find the one that is closest to destination
-//    	int a = Math.abs(dest[0] - me.y);
-//    	int b = Math.abs(dest[1] - me.x); 
-//    	int minimum = a*a + b*b;
-//    	int ddy = dest[0] - me.y;
-//    	int ddx = dest[1] - me.x;
-//    	//ArrayList<Integer[]> possibleMoves = new ArrayList<Integer[]>();
-//    	// top right quadrant, including axis
-//    	for(int i = 0; i <= a; i++) {
-//    		for(int j = 0; j <= b; j++) {
-//    			if ((i*i + j*j) <= range && isPassableEmpty(i, j)) {
-//    				// [y, x, r^2]
-//    				int rr1 = (dy-i)*(dy-i) + (dx-j)*(dx-j);
-//    				if(rr1 < minimum) {
-//    					minimum = rr1;
-//    					ddy = i;
-//    					ddx = j;
-//    				}
-//    				//possibleMoves.add(new Integer[] {(Integer) i, (Integer) j, (Integer)(rr1)});
-//    			}
-//    		}
-//    	}
-//    	// bottom right quadrant 
-//    	for(int k = -a; k != 0; k++) {
-//    		for(int l = 0; l <= b; l++) {
-//    			if ((k*k + l*l) <= range && isPassableEmpty(k, l)) {
-//    				int rr2 = (dy-k)*(dy-k) + (dx-l)*(dx-l);
-//    				if(rr2 < minimum) {
-//    					minimum = rr2;
-//    					ddy = k;
-//    					ddx = l;
-//    				}
-//    				//possibleMoves.add(new Integer[] {(Integer) k, (Integer) l, (Integer)(rr2)});
-//    			}
-//    		}
-//    	}
-//    	// top left quadrant
-//    	for(int m = 0; m <= a; m++) {
-//    		for(int n = -b; n != 0; n++) {
-//    			if ((m*m + n*n) <= range && isPassableEmpty(m, n)) {
-//    				int rr3 = (dy-m)*(dy-m) + (dx-n)*(dx-n);
-//    				if(rr3 < minimum) {
-//    					minimum = rr3;
-//    					ddy = m;
-//    					ddx = n;
-//    				}
-//    				//possibleMoves.add(new Integer[] {(Integer) m, (Integer) n, (Integer)(rr3)});
-//    			}
-//    		}
-//    	}
-//    	// bottom left quadrant
-//    	for(int p = -a; p != 0; p++) {
-//    		for(int q = -b; q != 0; q++) {
-//    			if ((p*p + q*q) <= range && isPassableEmpty(p, q)) {
-//    				int rr4 = (dy-p)*(dy-p) + (dx-q)*(dx-q);
-//    				if(rr4 < minimum) {
-//    					minimum = rr4;
-//    					ddy = p;
-//    					ddx = q;
-//    				}
-//    				//possibleMoves.add(new Integer[] {(Integer) p, (Integer) q, (Integer)(rr4)});
-//    			}
-//    		}
-//    	}
-//    	dy = ddy;
-//    	dx = ddx;
-//    	//int[] closest = findMin(possibleMoves);
-//    	//dy = closest[0];
-//    	//dx = closest[1]; 
-//    	// what if the closest one is not possible? 
-//    	
-    	
-    	
-    	// 1. basic method
-//    	while (Math.abs(dx) != 0 || Math.abs(dy) != 0) {
-//    		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
-//    			dy--;
-//    			dx--;
-//    		}
-//    		else {
-//    			break;
-//    		}	
-//    	}
-    	
-    	
-    	// 2. furthest one can move iterative 
-    	// intended direction while loop MAYBE FIX THIS???
-//    	while(Math.abs(dx) != 0 || Math.abs(dy) != 0) {
-//    		if ( !(dx*dx + dy*dy <= range && isPassableEmpty(me.y + dy, me.x + dx))) {
-//    			int dy2 = dy - 1;
-//    			int dx2 = dx - 1;
-//    			if ((dy2*dy2 + dx*dx) >= (dy*dy + dx2*dx2)) {
-//    				if(isPassableEmpty(me.y + dy2, me.x + dx)) {
-//    					dy = dy2;
-//    				}
-//    				else if () {
-//    					dx = dx2;
-//    				}
-//    			}
-//    			else {
-//    				dx = dx2;
-//    			}
-//    		}
-//    	}
-    	// another while loop for another direction
-    	
-
-//  	3. boolean indicator does not work - times out
-//    	
-//    	boolean change_dx = true;
-//    	while ((!(dx*dx + dy*dy <= range) || !isPassableEmpty(me.x + dx, me.y + dy)) && (Math.abs(dx) > 0 || Math.abs(dy) > 0)) { 
-//    		if (change_dx && dx > 0) {
-//    			dx--;
-//    			change_dx = false;
-//    		}
-//    		else if (!change_dx && dy > 0) {
-//    			dy--;
-//    			change_dx = true;
-//    		}
-//    		else if (change_dx && dx < 0) {
-//    			dx++;
-//    			change_dx = false;
-//    		}
-//    		else if (!change_dx && dy < 0) {
-//    			dy++;
-//    			change_dx = true;
-//    		}
-//    	}
-//    	
-//		
-    	
-    	// 4. random method - very basic - works
-//		int dx = (int)(Math.random()*3)-1;
-//		int dy = (int)(Math.random()*3)-1;
-//    	
-//    	//while(!isPassableEmpty(me.x+dx,me.y+dy) && (dx*dx+dy*dy <=range)
-//    	while(!isPassableEmpty(me.x+dx,me.y+dy))
-//    	{
-//    		dx = (int)(Math.random()*3)-1;
-//    		dy = (int)(Math.random()*3)-1;
-//    	}
-//		return move(dx,dy);
-//    	
-//    	//return null;
-    	
-    	
-    	return move(dx,dy);
+    	 return move(dx,dy);
     }
     
 
@@ -840,6 +798,27 @@ public class MyRobot extends BCAbstractRobot {
 //    		}
 //    	}
     	return attack; 
+    }
+    
+    /**returns list of robots that are visible and radioing
+     * 
+     */
+    public ArrayList<Robot> getSignal()
+    {
+    	ArrayList<bc19.Robot> signals = new ArrayList<Robot>();
+    	Robot[] robots = getVisibleRobots();
+    	int d = 0;
+    	//attack on first sight
+    	for(int i = 0; i < robots.length; i++) {
+    		Robot r = robots[i];
+    		if(isRadioing(r))
+    		{
+    			signals.add(r);
+    		}
+    	}
+    	return signals;
+    	
+    	
     }
     
     
